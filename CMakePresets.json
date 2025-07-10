@@ -1,0 +1,112 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 15,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "x64-debug",
+      "generator": "Visual Studio 17 2022",
+      "description": "x64 Debug",
+      "binaryDir": "${sourceDir}/build/x64-debug",
+      "cacheVariables": {"CMAKE_C_COMPILER": "cl.exe", "CMAKE_CXX_COMPILER": "cl.exe", "CMAKE_BUILD_TYPE": "Debug"},
+      "architecture": {"value": "x64"},
+      "vendor": { "platform": "windows" }
+    },
+    {
+      "name": "x64-release",
+      "generator": "Visual Studio 17 2022",
+      "description": "x64 Release",
+      "binaryDir": "${sourceDir}/build/x64-release",
+      "cacheVariables": {"CMAKE_C_COMPILER": "cl.exe", "CMAKE_CXX_COMPILER": "cl.exe", "CMAKE_BUILD_TYPE": "Release"},
+      "architecture": {"value": "x64"},
+      "vendor": { "platform": "windows" }
+    },
+    {
+      "name": "x86-debug",
+      "generator": "Visual Studio 17 2022",
+      "description": "x86 Debug",
+      "binaryDir": "${sourceDir}/build/x86-debug",
+      "cacheVariables": {"CMAKE_C_COMPILER": "cl.exe", "CMAKE_CXX_COMPILER": "cl.exe", "CMAKE_BUILD_TYPE": "Debug"},
+      "architecture": {"value": "Win32"},
+      "vendor": { "platform": "windows" }
+    },
+    {
+      "name": "x86-release",
+      "generator": "Visual Studio 17 2022",
+      "description": "x86 Release",
+      "binaryDir": "${sourceDir}/build/x86-release",
+      "cacheVariables": {"CMAKE_C_COMPILER": "cl.exe", "CMAKE_CXX_COMPILER": "cl.exe", "CMAKE_BUILD_TYPE": "Release"},
+      "architecture": {"value": "Win32"},
+      "vendor": { "platform": "windows" }
+    },
+    {
+      "name": "linux-wsl-debug",
+      "description": "Linux via WSL",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/linux-wsl-debug",
+      "cacheVariables": {"CMAKE_BUILD_TYPE": "Debug"},
+      "toolchainFile": "toolchains/linux-wsl.cmake",
+      "vendor": { "platform": "linux" }
+    },
+    {
+      "name": "linux-wsl-release",
+      "description": "Linux via WSL",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/linux-wsl-release",
+      "cacheVariables": {"CMAKE_BUILD_TYPE": "Release"},
+      "toolchainFile": "toolchains/linux-wsl.cmake",
+      "vendor": { "platform": "linux" }
+    },
+    {
+      "name": "android-arm64-debug",
+      "description": "Android ARM64 Debug",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/android-arm64-debug",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "toolchains/android-arm64.cmake",
+        "CMAKE_BUILD_TYPE": "Debug"
+      },
+      "vendor": { "platform": "android" }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "x64-debug",
+      "configurePreset": "x64-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "x64-release",
+      "configurePreset": "x64-release",
+      "configuration": "Release"
+    },
+    {
+      "name": "x86-debug",
+      "configurePreset": "x86-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "x86-release",
+      "configurePreset": "x86-release",
+      "configuration": "Release"
+    },
+    {
+      "name": "linux-wsl-debug",
+      "configurePreset": "linux-wsl-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "linux-wsl-release",
+      "configurePreset": "linux-wsl-release",
+      "configuration": "Release"
+    },
+    {
+      "name": "android-arm64-debug",
+      "configurePreset": "android-arm64-debug",
+      "configuration": "Debug"
+    }
+  ]
+}

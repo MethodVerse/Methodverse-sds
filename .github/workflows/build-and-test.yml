@@ -1,0 +1,170 @@
+# This workflow builds and verifies the project on Windows, Linux and Android platforms.
+# The Android platform is emulated using the Android Emulator in Linux Runner.
+
+name: Build and Verify by Platform (Unified Loop)
+
+on:
+  push:
+    branches: [main, feature]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-and-verify:
+    strategy:
+      matrix:
+        # Only these combinations will be run:
+        # - Windows without api-level
+        # - Linux with Android api-level 29
+        os: [windows-latest, ubuntu-latest]
+        api-level: [29]
+        include:
+          - os: windows-latest
+          - os: ubuntu-latest
+            api-level: 29
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    # Checkout the repository
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # Install dependencies on Linux, which is also used for Android builds
+    - name: Install CMake, Ninja, and jq (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build jq
+
+    # Install dependencies on Windows
+    - name: Install Ninja and jq (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        choco install cmake ninja jq -y
+
+    # Set up CMake (cross-platform)
+    - name: Set up CMake
+      uses: jwlawson/actions-setup-cmake@v1.13
+
+    # Set up Android SDK only on Linux runners for building and testing Android components
+    - name: Set up Android SDK
+      if: runner.os == 'Linux'
+      uses: android-actions/setup-android@v3
+      with:
+        cmdline-tools-version: 13114758
+    
+    # Enable KVM for Android emulator on Linux runners to improve performance
+    - name: Enable KVM
+      if: runner.os == 'Linux'
+      run: |
+        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+        sudo udevadm control --reload-rules
+        sudo udevadm trigger --name-match=kvm
+
+    # List available NDKs (for debugging)
+    - name: List available NDKs
+      if: runner.os == 'Linux'
+      run: ls -l $ANDROID_HOME/ndk        
+
+    # Set ANDROID_NDK and ANDROID_API_LEVEL environment variables on Linux, which are used in Android toolchain file (android-arm64.cmake)
+    - name: Set ANDROID_NDK environment variable
+      if: runner.os == 'Linux'
+      run: |
+        export ANDROID_NDK=$(ls -d $ANDROID_HOME/ndk/* | sort -V | tail -n 1)
+        echo "ANDROID_NDK=$ANDROID_NDK" >> $GITHUB_ENV
+        echo "ANDROID_API_LEVEL=${{ matrix.api-level }}" >> $GITHUB_ENV
+      shell: bash
+
+    # Configure, build, and verify on Linux
+    - name: Configure, build, and verify (Linux)
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        # Set expected output
+        expected="Hello, MethodVerse!"
+        source_dir="$(pwd)"
+        # Loop through all Linux configure presets
+        jq -r '.configurePresets[] | select(.vendor.platform=="linux") | [.name, .generator, .binaryDir] | @tsv' CMakePresets.json | while IFS=$'\t' read name generator binaryDir; do
+          echo "🔧 Configuring and building $name"
+          cmake --preset "$name"
+          cmake --build --preset "$name"
+
+          config=$(jq -r --arg name "$name" '.buildPresets[] | select(.name == $name) | .configuration // "Debug"' CMakePresets.json)
+
+          # Strip literal ${sourceDir}/ using sed
+          relative_dir=$(echo "$binaryDir" | sed 's#\${sourceDir}/##')
+
+          exe_path="$source_dir/$relative_dir"
+          [[ "$generator" =~ [Vv]isual ]] && exe_path="$exe_path/$config"
+          exe_path="$exe_path/hello_methodverse"
+          exe_path="${exe_path//\\//}"  # normalize backslashes
+          exe_path="${exe_path// /\ }"   # escape spaces
+
+          echo "🚀 Running $exe_path"
+          output=$($exe_path)
+          if [[ "$output" != "$expected" ]]; then
+            echo "❌ Output from $exe_path: '$output' (expected: '$expected')"
+            exit 1
+          else
+            echo "✅ Output verified: $output"
+          fi
+          ctest --output-on-failure --test-dir "$source_dir/$relative_dir/tst"
+        done
+
+    # Configure, build, and verify on Windows
+    - name: Configure, build, and verify (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        # Set expected output
+        $expected = "Hello, MethodVerse!"
+        $sourceDir = (Get-Location).Path
+
+        # Get configure and build presets
+        $presets = (Get-Content -Raw -Path "CMakePresets.json" | ConvertFrom-Json).configurePresets
+        $builds = (Get-Content -Raw -Path "CMakePresets.json" | ConvertFrom-Json).buildPresets
+
+        foreach ($preset in $presets) {
+          if ($preset.vendor.platform -ne "windows") { continue }
+
+          $name = $preset.name
+          $generator = $preset.generator
+          $binaryDir = $preset.binaryDir -replace '\$\{sourceDir\}/?', ''
+          $buildPreset = $builds | Where-Object { $_.name -eq $name }
+          $config = $buildPreset.configuration
+          if (-not $config) { $config = "Debug" }
+
+          Write-Host "🛠️ Configuring and building $name"
+          cmake --preset $name
+          cmake --build --preset $name
+
+          $exePath = Join-Path $sourceDir $binaryDir
+          if ($generator -like "*Visual Studio*") {
+            $exePath = Join-Path $exePath $config
+          }
+          $exePath = Join-Path $exePath "hello_methodverse.exe"
+
+          Write-Host "🚀 Running $exePath"
+          $output = & $exePath
+          if ($output -ne $expected) {
+            Write-Error "❌ Output from `${exePath}`: '${output}' (expected: '${expected}')"
+            exit 1
+          } else {
+            Write-Host "✅ Output correct: '${output}'"
+          }
+          ctest --output-on-failure --test-dir (Join-Path $sourceDir $binaryDir "tst") -C $config
+        }
+
+    # Run Android emulator inside Linux runner
+    # Android targets are pushed to the emulator for testing
+    - name: Configure, build, and verify on emulator (android)
+      if: runner.os == 'Linux'
+      uses: reactivecircus/android-emulator-runner@v2.34.0
+      with:
+        api-level: ${{ matrix.api-level }}
+        arch: x86_64
+        force-avd-creation: true
+        emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+        disable-animations: true
+        script: chmod +x ./ci/android_emulator_script.sh && ./ci/android_emulator_script.sh
