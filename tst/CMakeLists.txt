@@ -9,7 +9,7 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 add_executable(parameter_test parameter_test.cpp ../src/parameter.cpp)
-target_include_directories(parameter_test PRIVATE ${CMAKE_SOURCE_DIR}/include ${eigen_SOURCE_DIR}/Eigen)
-target_link_libraries(parameter_test gtest_main Eigen3::Eigen)
+target_include_directories(parameter_test PRIVATE ${CMAKE_SOURCE_DIR}/include ${eigen_SOURCE_DIR})
+target_link_libraries(parameter_test gtest_main)
 
 add_test(NAME parameter_test COMMAND parameter_test)
