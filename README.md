@@ -103,5 +103,5 @@ CMakePresets.json            # Preset definitions for build configurations
 - VS Code with CMake Tools & C++ extensions
 
 ---
-Android builds are supported, and macOS support is planned for future updates. These platforms are currently tested via GitHub Actions and runners rather than the local development environment.
+Android builds are supported, and macOS support is planned for future updates. Android platform is currently tested via android emulator in linux runners through GitHub Actions, rather than the local development environment.
 Feel free to share feedback, submit issues or feature requests, and contribute to or extend the build system. 🚀
