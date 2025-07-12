@@ -8,11 +8,10 @@
   "configurePresets": [
     {
       "name": "x64-debug",
-      "generator": "Visual Studio 17 2022",
+      "generator": "Ninja",
       "description": "x64 Debug",
       "binaryDir": "${sourceDir}/build/x64-debug",
-      "cacheVariables": {"CMAKE_C_COMPILER": "cl.exe", "CMAKE_CXX_COMPILER": "cl.exe", "CMAKE_BUILD_TYPE": "Debug"},
-      "architecture": {"value": "x64"},
+      "cacheVariables": {"CMAKE_C_COMPILER": "gcc", "CMAKE_CXX_COMPILER": "g++", "CMAKE_BUILD_TYPE": "Debug"},
       "vendor": { "platform": "windows" }
     },
     {

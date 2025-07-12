@@ -120,7 +120,8 @@ def generate_launch(presets, source_dir, current_platform):
 			
         config = {
             "name": f"Launch {name}",
-            "type": "cppvsdbg" if is_windows else "cppdbg",
+            # we use "cppdbg" for both Windows and Linux for consistency
+            "type": "cppdbg" if is_windows else "cppdbg",
             "request": "launch",
             "program": executable_path,
             "args": [],

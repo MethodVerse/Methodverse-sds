@@ -20,13 +20,13 @@ int main() {
     // test parameter_defs.h
     TE te({10.0, 11.0, 12.0});
     TR tr(20.0);
-    double x = static_cast<double>(te);
-    x = 0.5;
-    te[1] = x;
-    auto y = te[2];
-    auto z = static_cast<double>(te);
-    std::cout << "TE value: " << te[0] << ", TR value: " << tr[0] << std::endl;
-    auto a = std::vector<int>{1,2,3} + 2;
+    // double x = static_cast<double>(te);
+    // x = 0.5;
+    // te[1] = x;
+    // auto y = te[2];
+    // auto z = static_cast<double>(te);
+    // std::cout << "TE value: " << te[0] << ", TR value: " << tr[0] << std::endl;
+    // auto a = std::vector<int>{1,2,3} + 2;
     // // test parameter.h and parameter_registry.h
     // std::cout << "TE::Name is " << TE::name << std::endl;
     // std::cout << "TE::ID is " << TE::id << std::endl;

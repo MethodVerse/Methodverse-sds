@@ -184,23 +184,23 @@ public:
         return elementWiseBinaryOp(other, std::divides<>());
     }
 
-    template<typename = std::enable_if_t<std::is_arithmetic_v<U>>>
-    Derived operator+(const T& rhs) const { return Derived(value_[0] + rhs); }
-    template<typename = std::enable_if_t<std::is_arithmetic_v<U>>>
-    Derived operator-(const T& rhs) const { return Derived(value_[0] - rhs); }
-    template<typename = std::enable_if_t<std::is_arithmetic_v<U>>>
-    Derived operator*(const T& rhs) const { return Derived(value_[0] * rhs); }
-    template<typename = std::enable_if_t<std::is_arithmetic_v<U>>>
-    Derived operator/(const T& rhs) const { return Derived(value_[0] / rhs); }
+    // template<typename = std::enable_if_t<std::is_arithmetic_v<U>>>
+    // Derived operator+(const T& rhs) const { return Derived(value_[0] + rhs); }
+    // template<typename = std::enable_if_t<std::is_arithmetic_v<U>>>
+    // Derived operator-(const T& rhs) const { return Derived(value_[0] - rhs); }
+    // template<typename = std::enable_if_t<std::is_arithmetic_v<U>>>
+    // Derived operator*(const T& rhs) const { return Derived(value_[0] * rhs); }
+    // template<typename = std::enable_if_t<std::is_arithmetic_v<U>>>
+    // Derived operator/(const T& rhs) const { return Derived(value_[0] / rhs); }
 
-    template<typename = std::enable_if_t<std::is_arithmetic_v<U>>>
-    friend Derived operator+(const T& lhs, const Derived& rhs) { return Derived(lhs + rhs[0]); }
-    template<typename = std::enable_if_t<std::is_arithmetic_v<U>>>
-    friend Derived operator-(const T& lhs, const Derived& rhs) { return Derived(lhs - rhs[0]); }
-    template<typename = std::enable_if_t<std::is_arithmetic_v<U>>>
-    friend Derived operator*(const T& lhs, const Derived& rhs) { return Derived(lhs * rhs[0]); }
-    template<typename = std::enable_if_t<std::is_arithmetic_v<U>>>
-    friend Derived operator/(const T& lhs, const Derived& rhs) { return Derived(lhs / rhs[0]); }
+    // template<typename = std::enable_if_t<std::is_arithmetic_v<U>>>
+    // friend Derived operator+(const T& lhs, const Derived& rhs) { return Derived(lhs + rhs[0]); }
+    // template<typename = std::enable_if_t<std::is_arithmetic_v<U>>>
+    // friend Derived operator-(const T& lhs, const Derived& rhs) { return Derived(lhs - rhs[0]); }
+    // template<typename = std::enable_if_t<std::is_arithmetic_v<U>>>
+    // friend Derived operator*(const T& lhs, const Derived& rhs) { return Derived(lhs * rhs[0]); }
+    // template<typename = std::enable_if_t<std::is_arithmetic_v<U>>>
+    // friend Derived operator/(const T& lhs, const Derived& rhs) { return Derived(lhs / rhs[0]); }
 
     size_t Size() const noexcept { return value_.size(); }
     void Resize(size_t n) { value_.resize(n); }
