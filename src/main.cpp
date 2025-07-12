@@ -20,6 +20,7 @@ int main() {
     // test parameter_defs.h
     TE te({10.0, 11.0, 12.0});
     TR tr(20.0);
+    std::cout << "Hello, MethodVerse!" << std::endl;
     // double x = static_cast<double>(te);
     // x = 0.5;
     // te[1] = x;

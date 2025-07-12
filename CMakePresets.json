@@ -16,29 +16,10 @@
     },
     {
       "name": "x64-release",
-      "generator": "Visual Studio 17 2022",
+      "generator": "Ninja",
       "description": "x64 Release",
       "binaryDir": "${sourceDir}/build/x64-release",
-      "cacheVariables": {"CMAKE_C_COMPILER": "cl.exe", "CMAKE_CXX_COMPILER": "cl.exe", "CMAKE_BUILD_TYPE": "Release"},
-      "architecture": {"value": "x64"},
-      "vendor": { "platform": "windows" }
-    },
-    {
-      "name": "x86-debug",
-      "generator": "Visual Studio 17 2022",
-      "description": "x86 Debug",
-      "binaryDir": "${sourceDir}/build/x86-debug",
-      "cacheVariables": {"CMAKE_C_COMPILER": "cl.exe", "CMAKE_CXX_COMPILER": "cl.exe", "CMAKE_BUILD_TYPE": "Debug"},
-      "architecture": {"value": "Win32"},
-      "vendor": { "platform": "windows" }
-    },
-    {
-      "name": "x86-release",
-      "generator": "Visual Studio 17 2022",
-      "description": "x86 Release",
-      "binaryDir": "${sourceDir}/build/x86-release",
-      "cacheVariables": {"CMAKE_C_COMPILER": "cl.exe", "CMAKE_CXX_COMPILER": "cl.exe", "CMAKE_BUILD_TYPE": "Release"},
-      "architecture": {"value": "Win32"},
+      "cacheVariables": {"CMAKE_C_COMPILER": "gcc", "CMAKE_CXX_COMPILER": "g++", "CMAKE_BUILD_TYPE": "Release"},
       "vendor": { "platform": "windows" }
     },
     {
@@ -80,16 +61,6 @@
     {
       "name": "x64-release",
       "configurePreset": "x64-release",
-      "configuration": "Release"
-    },
-    {
-      "name": "x86-debug",
-      "configurePreset": "x86-debug",
-      "configuration": "Debug"
-    },
-    {
-      "name": "x86-release",
-      "configurePreset": "x86-release",
       "configuration": "Release"
     },
     {
