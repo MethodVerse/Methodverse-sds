@@ -99,6 +99,10 @@ public:
     // TE te({1.0, 2.0, 3.0});
     Parameter(std::initializer_list<T> values) : value_(values) {}
 
+    // Derived type accessors, e.g. TE te; te.Derived() returns TE&.
+    const Derived& GetDerived() const { return *this; }
+    Derived& GetDerived() { return *this; }
+
     // Conversion operator to T, e.g. double x = static_cast<double>(te);
     // We force explicit conversion to avoid implicit conversions that could lead to confusion.
     [[nodiscard]] explicit operator T() const noexcept {
@@ -133,7 +137,7 @@ public:
     T& operator[](size_t i) { return value_.at(i); }
     const T& operator[](size_t i) const { return value_.at(i); }
 
-    [[nodiscard]] std::string Name() const override { return Derived::name; }
+    [[nodiscard]] std::string Name() const override { return std::string(Derived::name); }
 
     // serialization to string, e.g. "TE: [1.0, 2.0, 3.0]"
     [[nodiscard]] std::string ValueAsString() const override {
@@ -169,38 +173,20 @@ public:
     // Arithmetic operations with another parameter of the same type.
     template<typename = std::enable_if_t<std::is_arithmetic_v<T>>>
     Derived operator+(const Derived& other) const {
-        return elementWiseBinaryOp(other, std::plus<>());
+        return elementWiseBinaryOp(*this, other, std::plus<>());
     }
     template<typename = std::enable_if_t<std::is_arithmetic_v<T>>>
     Derived operator-(const Derived& other) const {
-        return elementWiseBinaryOp(other, std::minus<>());
+        return elementWiseBinaryOp(*this, other, std::minus<>());
     }
     template<typename = std::enable_if_t<std::is_arithmetic_v<T>>>
     Derived operator*(const Derived& other) const {
-        return elementWiseBinaryOp(other, std::multiplies<>());
+        return elementWiseBinaryOp(*this, other, std::multiplies<>());
     }
     template<typename = std::enable_if_t<std::is_arithmetic_v<T>>>
     Derived operator/(const Derived& other) const {
-        return elementWiseBinaryOp(other, std::divides<>());
+        return elementWiseBinaryOp(*this, other, std::divides<>());
     }
-
-    // template<typename = std::enable_if_t<std::is_arithmetic_v<U>>>
-    // Derived operator+(const T& rhs) const { return Derived(value_[0] + rhs); }
-    // template<typename = std::enable_if_t<std::is_arithmetic_v<U>>>
-    // Derived operator-(const T& rhs) const { return Derived(value_[0] - rhs); }
-    // template<typename = std::enable_if_t<std::is_arithmetic_v<U>>>
-    // Derived operator*(const T& rhs) const { return Derived(value_[0] * rhs); }
-    // template<typename = std::enable_if_t<std::is_arithmetic_v<U>>>
-    // Derived operator/(const T& rhs) const { return Derived(value_[0] / rhs); }
-
-    // template<typename = std::enable_if_t<std::is_arithmetic_v<U>>>
-    // friend Derived operator+(const T& lhs, const Derived& rhs) { return Derived(lhs + rhs[0]); }
-    // template<typename = std::enable_if_t<std::is_arithmetic_v<U>>>
-    // friend Derived operator-(const T& lhs, const Derived& rhs) { return Derived(lhs - rhs[0]); }
-    // template<typename = std::enable_if_t<std::is_arithmetic_v<U>>>
-    // friend Derived operator*(const T& lhs, const Derived& rhs) { return Derived(lhs * rhs[0]); }
-    // template<typename = std::enable_if_t<std::is_arithmetic_v<U>>>
-    // friend Derived operator/(const T& lhs, const Derived& rhs) { return Derived(lhs / rhs[0]); }
 
     size_t Size() const noexcept { return value_.size(); }
     void Resize(size_t n) { value_.resize(n); }
@@ -211,30 +197,6 @@ public:
 private:
     std::vector<T> value_;
     std::string unit_;
-    template <typename Op>
-    Derived elementWiseBinaryOp(const Derived& other, Op op) const {
-        if (value_.size() > 1 && other.Size() > 1 && value_.size() != other.Size()) {
-            throw std::runtime_error("Parameter vector size mismatch in binary operation");
-        } else if (value_.size() == 1 && other.Size() > 1) {
-            std::vector<T> result(other.Size());
-            for (size_t i = 0; i < other.Size(); ++i) {
-                result[i] = op(value_[0], other[i]);
-            }
-            return Derived(result);
-        } else if (value_.size() > 1 && other.Size() == 1) {
-            std::vector<T> result(value_.size());
-            for (size_t i = 0; i < value_.size(); ++i) {
-                result[i] = op(value_[i], other[0]);
-            }
-            return Derived(result);
-        } else if (value_.size() == other.Size()) {
-            std::vector<T> result(value_.size());
-            std::transform(value_.begin(), value_.end(), other.Get().begin(), result.begin(), op);
-            return Derived(result);
-        } else {
-            throw std::runtime_error("Unexpected vector size in binary operation");
-        }
-    }
 };
 
 // ======== Utility: declare and register parameter ========
@@ -251,15 +213,19 @@ template<int ID> struct TypeFromID;
 template<typename T> struct ObjectID;
 template<int N> struct IDTag : std::integral_constant<int, N> {};
 
+template<typename D1, typename D2>
+constexpr bool is_same_unit_v = (D1::unit == D2::unit);
+
 // Updated macro: concrete parameter types derive from Parameter<T, NAME>
-#define DEFINE_TYPED_PARAMETER(NAME, TEXT_NAME, TYPE)                                 \
+#define DEFINE_TYPED_PARAMETER(NAME, TEXT_NAME, TYPE, UNIT)                                 \
     namespace { constexpr int ID_##NAME = __COUNTER__; }                             \
     namespace { constexpr char NAME##_Literal[] = TEXT_NAME; }                       \
     struct NAME : public Parameter<TYPE, NAME> {                                     \
         using Parameter<TYPE, NAME>::Parameter;                                      \
         using value_type = TYPE;                                                     \
         static constexpr int id = ID_##NAME;                                         \
-        static constexpr const char* name = NAME##_Literal;                          \
+        static constexpr std::string_view name = NAME##_Literal;                          \
+        static constexpr std::string_view unit = UNIT;                                    \
     };                                                                               \
     template<> struct ObjectID<NAME> : IDTag<ID_##NAME> {                            \
         static constexpr const char* name = NAME##_Literal;                         \
@@ -274,3 +240,75 @@ template<int N> struct IDTag : std::integral_constant<int, N> {};
         }();                                                                         \
     }
 
+// ======== Element-wise binary operation for parameters of same type or 
+//          different types with same primitive type ========
+template <typename T, typename D1, typename D2, typename Op>
+auto elementWiseBinaryOp(const Parameter<T, D1>& lhs, const Parameter<T, D1>& rhs, Op op)
+{
+    const auto& value_lhs = lhs.Get();
+    const auto& value_rhs = rhs.Get();
+    if (value_lhs.empty() || value_rhs.empty())
+    {
+        throw std::runtime_error("Cannot perform binary operation on empty parameter values");
+    }
+    if (value_lhs.size() > 1 && value_rhs.size() > 1 && value_lhs.size() != value_rhs.size())
+    {
+        throw std::runtime_error("Parameter vector size mismatch in binary operation");
+    }
+    else if (value_lhs.size() == 1 && value_rhs.size() > 1)
+    {
+        // when lhs is a single value and rhs is a vector
+        std::vector<T> result(value_rhs.size());
+        for (size_t i = 0; i < value_rhs.size(); ++i)
+        {
+            result[i] = op(value_lhs[0], value_rhs[i]);
+        }
+        return D1(result);
+    }
+    else if (value_lhs.size() > 1 && value_rhs.size() == 1)
+    {
+        // when lhs is a vector and rhs is a single value
+        std::vector<T> result(value_lhs.size());
+        for (size_t i = 0; i < value_lhs.size(); ++i)
+        {
+            result[i] = op(value_lhs[i], value_rhs[0]);
+        }
+        return D2(result);
+    }
+    else if (value_lhs.size() == value_rhs.size())
+    {
+        // when both lhs and rhs are vectors of the same size
+        std::vector<T> result(value_lhs.size());
+        std::transform(value_lhs.begin(), value_lhs.end(), value_rhs.begin(), result.begin(), op);
+        return D1(result);
+    }
+    else
+    {
+        throw std::runtime_error("Unexpected vector size in binary operation");
+    }
+}
+
+// ======== Arithmetic operators for different Parameter types but with same primitive type ========
+template<typename T, typename D1, typename D2,
+         typename = std::enable_if_t<std::is_arithmetic_v<T> && is_same_unit_v<D1, D2>>>
+auto operator+(const Parameter<T, D1>& lhs, const Parameter<T, D2>& rhs) {
+    return Parameter<T, D1>::template elementWiseBinaryOp(lhs.GetDerived(), rhs.GetDerived(), std::plus<>{});
+}
+
+template<typename T, typename D1, typename D2,
+         typename = std::enable_if_t<std::is_arithmetic_v<T> && is_same_unit_v<D1, D2>>>
+auto operator-(const Parameter<T, D1>& lhs, const Parameter<T, D2>& rhs) {
+    return Parameter<T, D1>::template elementWiseBinaryOp(lhs.GetDerived(), rhs.GetDerived(), std::minus<>{});
+}
+
+template<typename T, typename D1, typename D2,
+         typename = std::enable_if_t<std::is_arithmetic_v<T> && is_same_unit_v<D1, D2>>>
+auto operator*(const Parameter<T, D1>& lhs, const Parameter<T, D2>& rhs) {
+    return Parameter<T, D1>::template elementWiseBinaryOp(lhs.GetDerived(), rhs.GetDerived(), std::plus<>{});
+}
+
+template<typename T, typename D1, typename D2,
+         typename = std::enable_if_t<std::is_arithmetic_v<T> && is_same_unit_v<D1, D2>>>
+auto operator/(const Parameter<T, D1>& lhs, const Parameter<T, D2>& rhs) {
+    return Parameter<T, D1>::template elementWiseBinaryOp(lhs.GetDerived(), rhs.GetDerived(), std::minus<>{});
+}
