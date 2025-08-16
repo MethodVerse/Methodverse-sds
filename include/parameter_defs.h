@@ -171,19 +171,19 @@ public:
     void Set(std::initializer_list<T> values) { value_ = values;}
 
     // Arithmetic operations with another parameter of the same type.
-    template<typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+    template<typename U = T, std::enable_if_t<std::is_arithmetic_v<U>, int> = 0>
     Derived operator+(const Derived& other) const {
         return elementWiseBinaryOp(*this, other, std::plus<>());
     }
-    template<typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+    template<typename U = T, std::enable_if_t<std::is_arithmetic_v<U>, int> = 0>
     Derived operator-(const Derived& other) const {
         return elementWiseBinaryOp(*this, other, std::minus<>());
     }
-    template<typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+    template<typename U = T, std::enable_if_t<std::is_arithmetic_v<U>, int> = 0>
     Derived operator*(const Derived& other) const {
         return elementWiseBinaryOp(*this, other, std::multiplies<>());
     }
-    template<typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+    template<typename U = T, std::enable_if_t<std::is_arithmetic_v<U>, int> = 0>
     Derived operator/(const Derived& other) const {
         return elementWiseBinaryOp(*this, other, std::divides<>());
     }

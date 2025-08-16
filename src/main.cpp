@@ -3,8 +3,8 @@
 #include "parameter_defs.h"
 
 // test parameter_defs.h
-DEFINE_TYPED_PARAMETER(TE, "TE", double);
-DEFINE_TYPED_PARAMETER(TR, "TR", double);
+DEFINE_TYPED_PARAMETER(TE, "TE", double, "ms");
+DEFINE_TYPED_PARAMETER(TR, "TR", double, "ms");
 
 int main() {
 
