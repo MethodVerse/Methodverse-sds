@@ -189,8 +189,8 @@ public:
     }
 
     // Access operator for single value or vector, e.g. te[0] = 1.0; auto x = te[1];
-    T& operator[](size_t i) { return value_.at(i); }
-    const T& operator[](size_t i) const { return value_.at(i); }
+    decltype(auto) operator[](size_t i) { return value_.at(i); }
+    decltype(auto) operator[](size_t i) const { return value_.at(i); }
 
     [[nodiscard]] std::string Name() const override { return std::string(Derived::name); }
 
@@ -217,6 +217,7 @@ public:
     }
 
     // Getter and setter for the value.
+    [[nodiscard]] std::vector<T>& Get() noexcept { return value_; }
     [[nodiscard]] const std::vector<T>& Get() const noexcept { return value_; }
     void Set(const T& v) {
         if (value_.empty()) value_.resize(1);

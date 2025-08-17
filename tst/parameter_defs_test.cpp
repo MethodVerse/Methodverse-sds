@@ -57,7 +57,7 @@ template<> inline auto make1<Tag1Double>()  { return Tag1Double{1.0, 3.3, 9.1}; 
 template<> inline auto make1<Tag1String>()     { return Tag1String{"Hello", "Method", "Verse"}; }
 template<> inline auto make1<Tag1EigenVector3d>()     { return Tag1EigenVector3d{Eigen::Vector3d(1, 2, 3), Eigen::Vector3d(4, 5, 6), Eigen::Vector3d(7, 8, 9)}; }
 template<> inline auto make1<Tag1EigenMatrix3d>()     { return Tag1EigenMatrix3d{Eigen::Matrix3d::Identity(), Eigen::Matrix3d::Ones(), Eigen::Matrix3d::Zero()}; }
-template<> inline auto make1<Tag1EigenQuaterniond>()  { return Tag1EigenQuaterniond{Eigen::Quaterniond(1, 0, 0, 0), Eigen::Quaterniond(1, 0, 0, 0)}; }
+template<> inline auto make1<Tag1EigenQuaterniond>()  { return Tag1EigenQuaterniond{Eigen::Quaterniond(1, 0, 0, 0), Eigen::Quaterniond(2, 0, 0, 0), Eigen::Quaterniond(3, 0, 0, 0)}; }
 
 template<class D> auto make2();
 template<> inline auto make2<Tag2Bool>()     { return Tag2Bool{false, true, false}; }
@@ -66,7 +66,7 @@ template<> inline auto make2<Tag2Double>()  { return Tag2Double{1.0, 3.3, 9.1}; 
 template<> inline auto make2<Tag2String>()     { return Tag2String{"Hello", "Method", "Verse"}; }
 template<> inline auto make2<Tag2EigenVector3d>()     { return Tag2EigenVector3d{Eigen::Vector3d(1, 2, 3), Eigen::Vector3d(4, 5, 6), Eigen::Vector3d(7, 8, 9)}; }
 template<> inline auto make2<Tag2EigenMatrix3d>()     { return Tag2EigenMatrix3d{Eigen::Matrix3d::Identity(), Eigen::Matrix3d::Ones(), Eigen::Matrix3d::Zero()}; }
-template<> inline auto make2<Tag2EigenQuaterniond>()  { return Tag2EigenQuaterniond{Eigen::Quaterniond(1, 0, 0, 0), Eigen::Quaterniond(1, 0, 0, 0)}; }
+template<> inline auto make2<Tag2EigenQuaterniond>()  { return Tag2EigenQuaterniond{Eigen::Quaterniond(1, 0, 0, 0), Eigen::Quaterniond(2, 0, 0, 0), Eigen::Quaterniond(3, 0, 0, 0)}; }
 
 // Helper definition to organize two tags into one type, which is added to the type list for google typed tests.
 template<class L, class R>
@@ -102,13 +102,13 @@ TYPED_TEST(CrossTagTest, ConstructCopyMove) {
 
     // Establish a reference expected value for comparison
     const L e = make1<L>();
-
+   
     // 0) default constructor
     if constexpr (std::is_default_constructible_v<L>){
         L dflt{};
         EXPECT_EQ(0, dflt.Get().size()); // default constructed object should not be equal to e
     }
-    
+
     // 1) copy constructor
     L a1(e);
     EXPECT_EQ(e, a1);
@@ -125,8 +125,31 @@ TYPED_TEST(CrossTagTest, ConstructCopyMove) {
     L a4 = std::move(a3); // start with a different value
     EXPECT_EQ(e, a4);
 
-    // 5) default constructor
-    L a5; // default-construct
+    // 5) constuct and assign from primitive type value
+    using Primitive = typename L::value_type;
+    Primitive whatever = static_cast<Primitive>(e[0]); // get the first value from e
+    L a5(whatever); // construct from primitive type value
+    EXPECT_EQ(e[0], a5[0]); // check the first value
+    EXPECT_EQ(1, a5.Get().size()); // should only have one value
 
+    a5 = e;
+    a5 = static_cast<Primitive>(e[1]);
+    EXPECT_EQ(e[1], a5[0]); // check the first value
+    EXPECT_EQ(1, a5.Get().size()); // should only have one value
 
+    // 6) construct and assign from primitive type vector
+    auto vec = static_cast<std::vector<Primitive>>(e);
+    L a6(vec); // construct from primitive type value
+    EXPECT_EQ(e, a6); // should be equal to e
+
+    a6.Get().clear(); // clear the value
+    a6 = vec;
+    EXPECT_EQ(e, a6); // should be equal to e
+
+    // 7) construct and assign from initializer list
+    L a7{e[0], e[1], e[2]}; // construct from initializer list
+    EXPECT_EQ(e, a7); // should be equal to e
+    a7.Get().clear(); // clear the value
+    a7 = {e[0], e[1], e[2]}; // assign from initializer list
+    EXPECT_EQ(e, a7); // should be equal to e
 }
