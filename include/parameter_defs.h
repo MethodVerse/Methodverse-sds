@@ -13,6 +13,55 @@
 #include <typeindex>
 #include <initializer_list>
 #include <type_traits>
+#include <concepts>
+
+// Updated macro: concrete parameter types derive from Parameter<T, NAME>
+#define DEFINE_TYPED_PARAMETER(NAME, TEXT_NAME, TYPE, UNIT)                                 \
+namespace mv {                                                                              \
+    namespace { constexpr int ID_##NAME = __COUNTER__; }                                    \
+    namespace { constexpr char NAME##_Literal[] = TEXT_NAME; }                              \
+    struct NAME : public Parameter<TYPE, NAME> {                                            \
+        using Parameter<TYPE, NAME>::Parameter;                                             \
+        using value_type = TYPE;                                                            \
+        static constexpr int id = ID_##NAME;                                                \
+        static constexpr std::string_view name = NAME##_Literal;                            \
+        static constexpr std::string_view unit = UNIT;                                      \
+    };                                                                                      \
+    template<> struct ObjectID<NAME> : IDTag<ID_##NAME> {                                   \
+        static constexpr const char* name = NAME##_Literal;                                 \
+    };                                                                                      \
+    template<> struct TypeFromID<ID_##NAME> { using type = NAME; };                         \
+    namespace {                                                                             \
+        const bool registered_##NAME = []() {                                               \
+            auto& registry = ParameterTypeRegistry();                                       \
+            auto [it, inserted] = registry.emplace(TEXT_NAME,                               \
+                std::type_index(typeid(NAME)));                                             \
+            assert(inserted && "Duplicate TEXT_NAME detected during parameter registration!");\
+            return true;                                                                    \
+        }();                                                                                \
+    }                                                                                       \
+} /* namespace mv */
+
+namespace mv {
+    template <class T>
+    concept SelfAddable = requires (const T& a, const T& b) {
+        { a + b } -> std::convertible_to<T>;
+    };
+
+    template <class T>
+    concept SelfSubtractable = requires (const T& a, const T& b) {
+        { a - b } -> std::convertible_to<T>;
+    };
+
+    template <class T>
+    concept SelfMultipliable = requires (const T& a, const T& b) {
+        { a * b } -> std::convertible_to<T>;
+    };
+
+    template <class T>
+    concept SelfDividable = requires (const T& a, const T& b) {
+        { a / b } -> std::convertible_to<T>;
+    };
 
 // ======== IParameter base interface ========
 class IParameter {
@@ -171,20 +220,19 @@ public:
     void Set(std::initializer_list<T> values) { value_ = values;}
 
     // Arithmetic operations with another parameter of the same type.
-    template<typename U = T, std::enable_if_t<std::is_arithmetic_v<U>, int> = 0>
-    Derived operator+(const Derived& other) const {
+    Derived operator+(const Derived& other) const requires SelfAddable<T>{
         return elementWiseBinaryOp(*this, other, std::plus<>());
     }
-    template<typename U = T, std::enable_if_t<std::is_arithmetic_v<U>, int> = 0>
-    Derived operator-(const Derived& other) const {
+ 
+    Derived operator-(const Derived& other) const requires SelfSubtractable<T>{
         return elementWiseBinaryOp(*this, other, std::minus<>());
     }
-    template<typename U = T, std::enable_if_t<std::is_arithmetic_v<U>, int> = 0>
-    Derived operator*(const Derived& other) const {
+
+    Derived operator*(const Derived& other) const requires SelfMultipliable<T>{
         return elementWiseBinaryOp(*this, other, std::multiplies<>());
     }
-    template<typename U = T, std::enable_if_t<std::is_arithmetic_v<U>, int> = 0>
-    Derived operator/(const Derived& other) const {
+
+    Derived operator/(const Derived& other) const requires SelfDividable<T>{
         return elementWiseBinaryOp(*this, other, std::divides<>());
     }
 
@@ -215,30 +263,6 @@ template<int N> struct IDTag : std::integral_constant<int, N> {};
 
 template<typename D1, typename D2>
 constexpr bool is_same_unit_v = (D1::unit == D2::unit);
-
-// Updated macro: concrete parameter types derive from Parameter<T, NAME>
-#define DEFINE_TYPED_PARAMETER(NAME, TEXT_NAME, TYPE, UNIT)                                 \
-    namespace { constexpr int ID_##NAME = __COUNTER__; }                             \
-    namespace { constexpr char NAME##_Literal[] = TEXT_NAME; }                       \
-    struct NAME : public Parameter<TYPE, NAME> {                                     \
-        using Parameter<TYPE, NAME>::Parameter;                                      \
-        using value_type = TYPE;                                                     \
-        static constexpr int id = ID_##NAME;                                         \
-        static constexpr std::string_view name = NAME##_Literal;                          \
-        static constexpr std::string_view unit = UNIT;                                    \
-    };                                                                               \
-    template<> struct ObjectID<NAME> : IDTag<ID_##NAME> {                            \
-        static constexpr const char* name = NAME##_Literal;                         \
-    };                                                                               \
-    template<> struct TypeFromID<ID_##NAME> { using type = NAME; };                  \
-    namespace {                                                                      \
-        const bool registered_##NAME = []() {                                        \
-            auto& registry = ParameterTypeRegistry();                                \
-            auto [it, inserted] = registry.emplace(TEXT_NAME, std::type_index(typeid(NAME))); \
-            assert(inserted && "Duplicate TEXT_NAME detected during parameter registration!"); \
-            return true;                                                             \
-        }();                                                                         \
-    }
 
 // ======== Element-wise binary operation for parameters of same type or 
 //          different types with same primitive type ========
@@ -312,3 +336,5 @@ template<typename T, typename D1, typename D2,
 auto operator/(const Parameter<T, D1>& lhs, const Parameter<T, D2>& rhs) {
     return Parameter<T, D1>::template elementWiseBinaryOp(lhs.GetDerived(), rhs.GetDerived(), std::minus<>{});
 }
+
+} // namespace mv

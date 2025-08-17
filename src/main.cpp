@@ -2,6 +2,7 @@
 //#include "parameter_registry.h"
 #include "parameter_defs.h"
 
+using namespace mv;
 // test parameter_defs.h
 DEFINE_TYPED_PARAMETER(TE, "TE", double, "ms");
 DEFINE_TYPED_PARAMETER(TR, "TR", double, "ms");

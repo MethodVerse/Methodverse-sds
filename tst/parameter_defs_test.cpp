@@ -2,6 +2,9 @@
 #include "parameter_defs.h"
 #include <Eigen/Dense>
 
+using namespace mv;
+// 
+
 DEFINE_TYPED_PARAMETER(TE, "Echo Time", double, "ms")
 DEFINE_TYPED_PARAMETER(TR, "Repetition Time", double, "ms")
 DEFINE_TYPED_PARAMETER(FlipAngle, "Flip Angle", double, "deg")
