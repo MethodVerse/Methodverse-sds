@@ -134,6 +134,7 @@ template<typename T, typename Derived>
 class Parameter : public IParameter {
 public:
     // Default constructors that will be created by compiler, but we list them for clarity.
+    Parameter() = default;
     Parameter(const Parameter &) = default;
     Parameter(Parameter &&) noexcept = default;
     Parameter &operator=(const Parameter &) = default;
@@ -180,6 +181,11 @@ public:
     Derived& operator=(std::initializer_list<T> rhs) {
         value_ = rhs;
         return static_cast<Derived&>(*this);
+    }
+
+    // Operator ==
+    bool operator==(const Parameter& other) const {
+        return value_ == other.value_;
     }
 
     // Access operator for single value or vector, e.g. te[0] = 1.0; auto x = te[1];
