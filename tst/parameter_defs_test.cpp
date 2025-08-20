@@ -27,28 +27,6 @@ DEFINE_TYPED_PARAMETER(Tag2EigenMatrix3d,     "Tag2EigenMatrix3d", Eigen::Matrix
 DEFINE_TYPED_PARAMETER(Tag1EigenQuaterniond,  "Tag1EigenQuaterniond", Eigen::Quaterniond, "")
 DEFINE_TYPED_PARAMETER(Tag2EigenQuaterniond,  "Tag2EigenQuaterniond", Eigen::Quaterniond, "")
 
-// // Repeat the definitions for the vector primitive types
-// DEFINE_TYPED_PARAMETER(Tag1BoolVec,    "Tag1BoolVec",    std::vector<bool>, "")
-// DEFINE_TYPED_PARAMETER(Tag2BoolVec,    "Tag2BoolVec",    std::vector<bool>, "")
-
-// DEFINE_TYPED_PARAMETER(Tag1IntVec,     "Tag1IntVec",     std::vector<int>, "")
-// DEFINE_TYPED_PARAMETER(Tag2IntVec,     "Tag2IntVec",     std::vector<int>, "")
-
-// DEFINE_TYPED_PARAMETER(Tag1DoubleVec,  "Tag1DoubleVec",  std::vector<double>, "")
-// DEFINE_TYPED_PARAMETER(Tag2DoubleVec,  "Tag2DoubleVec",  std::vector<double>, "")
-
-// DEFINE_TYPED_PARAMETER(Tag1StringVec,  "Tag1StringVec",  std::vector<std::string>, "")
-// DEFINE_TYPED_PARAMETER(Tag2StringVec,  "Tag2StringVec",  std::vector<std::string>, "")
-
-// DEFINE_TYPED_PARAMETER(Tag1EigenVector3dVec,     "TagEigenVector3dVec", std::vector<Eigen::Vector3d>, "")
-// DEFINE_TYPED_PARAMETER(Tag2EigenVector3dVec,     "TagEigenVector3dVec", std::vector<Eigen::Vector3d>, "")
-
-// DEFINE_TYPED_PARAMETER(Tag1EigenMatrix3dVec,     "TagEigenMatrix3dVec", std::vector<Eigen::Matrix3d>, "")
-// DEFINE_TYPED_PARAMETER(Tag2EigenMatrix3dVec,     "TagEigenMatrix3dVec", std::vector<Eigen::Matrix3d>, "")
-
-// DEFINE_TYPED_PARAMETER(Tag1EigenQuaterniondVec,  "TagEigenQuaterniondVec", std::vector<Eigen::Quaterniond>, "")
-// DEFINE_TYPED_PARAMETER(Tag2EigenQuaterniondVec,  "TagEigenQuaterniondVec", std::vector<Eigen::Quaterniond>, "")
-
 // We will need some real parameter objects to do the test
 template<class D> auto make1();
 template<> inline auto make1<Tag1Bool>()     { return Tag1Bool{false, true, false}; }
@@ -84,7 +62,7 @@ using CrossTypes = ::testing::Types<
 >;
 
 // Define a test fixture for google typed test framework
-template<class P>
+template<class PairType>
 class CrossTagTest : public ::testing::Test {};
 TYPED_TEST_SUITE(CrossTagTest, CrossTypes);
 
@@ -138,7 +116,7 @@ TYPED_TEST(CrossTagTest, ConstructCopyMove) {
     EXPECT_EQ(1, a5.Get().size()); // should only have one value
 
     // 6) construct and assign from primitive type vector
-    auto vec = static_cast<std::vector<Primitive>>(e);
+    auto vec = e.ToVector();
     L a6(vec); // construct from primitive type value
     EXPECT_EQ(e, a6); // should be equal to e
 
@@ -152,4 +130,134 @@ TYPED_TEST(CrossTagTest, ConstructCopyMove) {
     a7.Get().clear(); // clear the value
     a7 = {e[0], e[1], e[2]}; // assign from initializer list
     EXPECT_EQ(e, a7); // should be equal to e
+}
+
+TYPED_TEST(CrossTagTest, ConversionOperatorsToScalarAndVector) {
+    using L = TypeParam::Lhs;
+
+    // Establish a reference expected value for comparison
+    const L e = make1<L>();
+
+    // 1) conversion to primitive type
+    auto s = e.ToScalar();
+    EXPECT_EQ(e[0], s); // should be equal to the first value of e
+    auto v = e.ToVector();
+    EXPECT_EQ(e.Get(), v); // should be equal to the vector representation of e
+}
+
+TYPED_TEST(CrossTagTest, AccessOperator) {
+    using L = TypeParam::Lhs;
+    using R = TypeParam::Rhs;
+
+    L a = make1<L>();
+    R b = make2<R>();
+
+    a[0] = b[0]; 
+    EXPECT_EQ(a[0], b[0]);
+    a[1] = b[1];
+    EXPECT_EQ(a[1], b[1]);
+    a[2] = b[2];
+    EXPECT_EQ(a[2], b[2]); 
+}
+
+TYPED_TEST(CrossTagTest, ParameterNameUnit) {
+    using L = TypeParam::Lhs;
+
+    L a = make1<L>();
+
+    EXPECT_EQ(std::string(L::name), a.Name());
+    EXPECT_EQ(typeid(L), a.Type());
+    EXPECT_EQ(std::string(L::unit), a.Unit());
+}
+
+TYPED_TEST(CrossTagTest, ValueAsString) {
+    using L = TypeParam::Lhs;
+
+    L a = make1<L>();
+
+    // tentative test: just make sure calling ValueAsString() does not throw and returns a non-empty string
+    EXPECT_NO_THROW({
+        auto s = a.ValueAsString();
+        EXPECT_FALSE(s.empty());
+    });
+    EXPECT_EQ(a.ValueAsString(), a.ValueAsString());
+}
+
+TYPED_TEST(CrossTagTest, GetterAndSetter) {
+    using L = TypeParam::Lhs;
+
+    L e = make1<L>();
+    L a;
+    a.Set(e[0]);
+    EXPECT_EQ(1, a.Get().size());
+    EXPECT_EQ(e[0], a[0]);
+
+    a.Set(e.ToVector());
+    EXPECT_EQ(e, a);
+
+    a.Set({e[0], e[1], e[2]});
+    EXPECT_EQ(e, a);
+    
+    EXPECT_EQ(a.Get()[0], e[0]);
+    EXPECT_EQ(a.Get()[1], e[1]);    
+    EXPECT_EQ(a.Get()[2], e[2]);
+}
+
+TYPED_TEST(CrossTagTest, EqualityOperator) {
+    using L = TypeParam::Lhs;
+
+    L a = make1<L>();
+    L b = make1<L>();
+
+    EXPECT_EQ(a, b); // should be equal
+}
+
+TYPED_TEST(CrossTagTest, ElementWiseBinaryOperationOfSameTag) {
+    using L = TypeParam::Lhs;
+    using T = typename L::value_type;
+    L a = make1<L>();
+    L b = make1<L>();
+
+    static_assert(std::is_same_v<category_t<int>, scalar_tag>, "int should be a scalar type");
+    static_assert(std::is_same_v<category_t<Eigen::Vector3d>, eigen_vec_tag>, "Eigen::Vector3d should be a vector type");
+    static_assert(std::is_same_v<category_t<Eigen::Matrix3d>, eigen_mat_tag>, "Eigen::Matrix3d should be a matrix type");
+    // if constexpr (SelfAddable<typename L::value_type>) {
+    //     // Test addition
+    //     auto add_result = elementWiseBinaryOp(a, b, [](auto x, auto y) { return x + y; });
+    //     EXPECT_EQ(add_result, a+b);
+    // }
+    // else {
+    //     GTEST_SKIP() << "Skipping addition test for non-addable type"
+    //                  << typeid(L).name();
+    // }
+
+    // if constexpr (SelfSubtractable<typename L::value_type>) {
+    //     // Test addition
+    //     auto subtract_result = elementWiseBinaryOp(a, b, [](auto x, auto y) { return x - y; });
+    //     EXPECT_EQ(subtract_result, a-b);
+    // }
+    // else {
+    //     GTEST_SKIP() << "Skipping addition test for non-addable type"
+    //                  << typeid(L).name();
+    // }
+
+    // if constexpr (SelfMultipliable<typename L::value_type>) {
+    //     // Test multiplication
+    //     auto multiply_result = elementWiseBinaryOp(a, b, [](auto x, auto y) { return x * y; });
+    //     EXPECT_EQ(multiply_result, a*b);
+    // }
+    // else {
+    //     GTEST_SKIP() << "Skipping multiplication test for non-multipliable type"
+    //                  << typeid(L).name();
+    // }
+
+    // if constexpr (SelfDividable<typename L::value_type>) {
+    //     // Test division
+    //     auto divide_result = elementWiseBinaryOp(a, b, [](auto x, auto y) { return x / y; });
+    //     EXPECT_EQ(divide_result, a/b);
+    // }
+    // else {
+    //     GTEST_SKIP() << "Skipping division test for non-dividable type"
+    //                  << typeid(L).name();
+    // }
 }

@@ -14,6 +14,7 @@
 #include <initializer_list>
 #include <type_traits>
 #include <concepts>
+#include <Eigen/Dense>
 
 // Updated macro: concrete parameter types derive from Parameter<T, NAME>
 #define DEFINE_TYPED_PARAMETER(NAME, TEXT_NAME, TYPE, UNIT)                                 \
@@ -42,7 +43,31 @@ namespace mv {                                                                  
     }                                                                                       \
 } /* namespace mv */
 
-namespace mv {
+namespace mv
+{
+    // category tags for different types of parameters primitive, such as int, double, Eigen vector, Eigen matrix
+    struct scalar_tag {};
+    struct eigen_vec_tag {};
+    struct eigen_mat_tag {};
+
+
+    template <class T, class = void>
+    struct category {
+        using type = scalar_tag;
+    };
+
+    template <class T>       
+    struct category<T, std::void_t< // Check if T is an Eigen type  
+        decltype(std::remove_cvref_t<T>::RowsAtCompileTime),
+        decltype(std::remove_cvref_t<T>::ColsAtCompileTime)>>{
+        using type = std::conditional_t<
+            (std::remove_cvref_t<T>::RowsAtCompileTime == 1 || std::remove_cvref_t<T>::ColsAtCompileTime == 1),
+            eigen_vec_tag, eigen_mat_tag>;
+    };
+
+    template <class T>
+    using category_t = typename category<std::remove_cvref_t<T>>::type;
+
     template <class T>
     concept SelfAddable = requires (const T& a, const T& b) {
         { a + b } -> std::convertible_to<T>;
@@ -155,12 +180,12 @@ public:
 
     // Conversion operator to T, e.g. double x = static_cast<double>(te);
     // We force explicit conversion to avoid implicit conversions that could lead to confusion.
-    [[nodiscard]] explicit operator T() const noexcept {
+    [[nodiscard]] T ToScalar() const noexcept {
         return value_.empty() ? T{} : value_[0];
     }
 
     // Conversion operator to std::vector<T>, e.g. auto vec = static_cast<std::vector<double>>(te);
-    [[nodiscard]] explicit operator std::vector<T>() const noexcept {
+    [[nodiscard]] std::vector<T> ToVector() const noexcept {
         return value_;
     }
 
@@ -188,7 +213,7 @@ public:
         return value_ == other.value_;
     }
 
-    // Access operator for single value or vector, e.g. te[0] = 1.0; auto x = te[1];
+    // Access operator for single value, e.g. te[0] = 1.0; auto x = te[1];
     decltype(auto) operator[](size_t i) { return value_.at(i); }
     decltype(auto) operator[](size_t i) const { return value_.at(i); }
 
@@ -274,7 +299,7 @@ constexpr bool is_same_unit_v = (D1::unit == D2::unit);
 // ======== Element-wise binary operation for parameters of same type or 
 //          different types with same primitive type ========
 template <typename T, typename D1, typename D2, typename Op>
-auto elementWiseBinaryOp(const Parameter<T, D1>& lhs, const Parameter<T, D1>& rhs, Op op)
+auto elementWiseBinaryOp(const Parameter<T, D1>& lhs, const Parameter<T, D2>& rhs, Op op)
 {
     const auto& value_lhs = lhs.Get();
     const auto& value_rhs = rhs.Get();
