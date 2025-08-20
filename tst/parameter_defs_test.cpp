@@ -219,8 +219,12 @@ TYPED_TEST(CrossTagTest, ElementWiseBinaryOperationOfSameTag) {
     L b = make1<L>();
 
     static_assert(std::is_same_v<category_t<int>, scalar_tag>, "int should be a scalar type");
+    static_assert(std::is_same_v<category_t<double>, scalar_tag>, "double should be a scalar type");
+    static_assert(std::is_same_v<category_t<std::string>, string_tag>, "std::string should be a string type");
+    static_assert(std::is_same_v<category_t<bool>, bool_tag>, "Eigen::VectorXd should be a bool type");
     static_assert(std::is_same_v<category_t<Eigen::Vector3d>, eigen_vec_tag>, "Eigen::Vector3d should be a vector type");
     static_assert(std::is_same_v<category_t<Eigen::Matrix3d>, eigen_mat_tag>, "Eigen::Matrix3d should be a matrix type");
+    static_assert(std::is_same_v<category_t<Eigen::Quaterniond>, eigen_quat_tag>, "Eigen::Quaterniond should be a quaternion type");
     // if constexpr (SelfAddable<typename L::value_type>) {
     //     // Test addition
     //     auto add_result = elementWiseBinaryOp(a, b, [](auto x, auto y) { return x + y; });

@@ -45,28 +45,122 @@ namespace mv {                                                                  
 
 namespace mv
 {
-    // category tags for different types of parameters primitive, such as int, double, Eigen vector, Eigen matrix
+    // category tags for different types of parameter primitives, such as int, double, Eigen vector, Eigen matrix
+    // Different primitives have different operations, or different behaviors inside the operations. We use these 
+    // tags to distinguish and therefore guide the implementation of the operators, namely, + - * /, dot product, 
+    // matrix multiplication, bolean operations, etc.
     struct scalar_tag {};
+    struct string_tag {};
+    struct bool_tag {};
+    struct eigen_quat_tag {};
     struct eigen_vec_tag {};
     struct eigen_mat_tag {};
-
 
     template <class T, class = void>
     struct category {
         using type = scalar_tag;
     };
 
+    template <class T>
+    struct category<T, std::enable_if_t<std::is_convertible_v<std::remove_cvref_t<T>, std::string>>> {
+         using type = string_tag;
+    };
+
+    template <>
+    struct category<bool> {
+        using type = bool_tag;
+    };
+
     template <class T>       
     struct category<T, std::void_t< // Check if T is an Eigen type  
         decltype(std::remove_cvref_t<T>::RowsAtCompileTime),
         decltype(std::remove_cvref_t<T>::ColsAtCompileTime)>>{
+        using U = std::remove_cvref_t<T>;
         using type = std::conditional_t<
-            (std::remove_cvref_t<T>::RowsAtCompileTime == 1 || std::remove_cvref_t<T>::ColsAtCompileTime == 1),
-            eigen_vec_tag, eigen_mat_tag>;
+            (U::RowsAtCompileTime == 1 || U::ColsAtCompileTime == 1), eigen_vec_tag, eigen_mat_tag>;
+    };
+
+    template<class T>
+    struct category<T, std::enable_if_t<std::is_same_v<std::remove_cvref_t<T>, Eigen::Quaterniond>>>{
+        using type = eigen_quat_tag;
     };
 
     template <class T>
     using category_t = typename category<std::remove_cvref_t<T>>::type;
+
+    template <class T, class Derived>
+    struct Parameter; // forward declaration
+
+    template <class D>
+    concept ParameterLike = requires {D::value_type; D::unit; D::name; } &&
+                            std::is_base_of_v<Parameter<typename D::value_type, D>, D>;
+
+    template <class D1, class D2 = D1>
+    concept Addable = ParameterLike<D1> && ParameterLike<D2> &&
+                      std::is_base_of_v<Parameter<typename D2::data_type, D2>, D2> &&
+                      !std::is_same_v<category_t<typename D1::data_type>, bool_tag> &&
+                      !std::is_same_v<category_t<typename D1::data_type>, string_tag> &&
+                      !std::is_same_v<category_t<typename D1::data_type>, bool_tag> &&
+                      std::is_same_v<typename D1::data_type, typename D2::data_type> &&
+                      D1::unit == D2::unit;
+
+    template <class D1, class D2 = D1>
+    concept Subtractable = ParameterLike<D1> && ParameterLike<D2> &&
+                           !std::is_same_v<category_t<typename D1::data_type>, bool_tag> &&
+                           !std::is_same_v<category_t<typename D1::data_type>, string_tag> &&
+                           std::is_same_v<typename D1::data_type, typename D2::data_type> &&
+                           D1::unit == D2::unit;
+
+    template <class D1, class D2 = D1>
+    concept Multipliable = ParameterLike<D1> && ParameterLike<D2> &&
+                           !std::is_same_v<category_t<typename D1::data_type>, bool_tag> &&
+                           !std::is_same_v<category_t<typename D1::data_type>, string_tag> &&
+                           std::is_same_v<typename D1::data_type, typename D2::data_type> &&
+                           D1::unit == D2::unit;
+
+    template <class D1, class D2 = D1>
+    concept Divisible = ParameterLike<D1> && ParameterLike<D2> &&
+                        !std::is_same_v<category_t<typename D1::data_type>, bool_tag> &&
+                        !std::is_same_v<category_t<typename D1::data_type>, string_tag> &&
+                        std::is_same_v<typename D1::data_type, typename D2::data_type> &&
+                        D1::unit == D2::unit;                           
+
+    template <class D1, class D2 = D1>
+    concept AndableBool  = ParameterLike<D1> && ParameterLike<D2> &&
+                           std::is_same_v<category_t<typename D1::data_type>, bool_tag> &&
+                           std::is_same_v<category_t<typename D2::data_type>, bool_tag>;
+
+    template <class D1, class D2 = D1>
+    concept OrableBool   = AndableBool<D1, D2>;
+    
+    template <class D1, class D2 = D1>
+    concept XorableBool  = AndableBool<D1, D2>;
+
+    template <class D>
+    concept NotableBool  = ParameterLike<D> && std::is_same_v<category_t<typename D::data_type>, bool_tag>;
+
+    template <class D1, class D2 = D1>
+    concept EleWiseMultipliable = ParameterLike<D1> && ParameterLike<D2> &&
+                                  std::is_same_v<typename D1::data_type, typename D2::data_type> &&
+                                  (std::is_same_v<category_t<typename D1::data_type>, eigen_vec_tag> ||
+                                   std::is_same_v<category_t<typename D1::data_type>, eigen_mat_tag> ||
+                                   std::is_same_v<category_t<typename D1::data_type>, eigen_quat_tag>);
+
+    template <class D1, class D2 = D1>
+    concept EleWiseDividable = EleWiseMultipliable<D1, D2>;
+
+    template <class D1, class D2 = D1>
+    concept MatrixMultipliable = ParameterLike<D1> && ParameterLike<D2> &&
+                                  std::is_same_v<typename D1::data_type, typename D2::data_type> &&
+                                  std::is_same_v<category_t<typename D1::data_type>, eigen_mat_tag>;
+    
+    template <class D>
+    concept Transposible  = ParameterLike<D> && std::is_same_v<category_t<typename D::data_type>, eigen_vec_tag>;                            
+    
+    template <class D1, class D2 = D1>
+    concept CrossProductible = ParameterLike<D1> && ParameterLike<D2> &&
+                               std::is_same_v<category_t<typename D1::data_type>, eigen_vec_tag> &&
+                               std::is_same_v<category_t<typename D2::data_type>, eigen_vec_tag>;
 
     template <class T>
     concept SelfAddable = requires (const T& a, const T& b) {
@@ -252,6 +346,9 @@ public:
     void Set(std::initializer_list<T> values) { value_ = values;}
 
     // Arithmetic operations with another parameter of the same type.
+    // Derived operator+(const Derived& other) const requires category_t{
+    //     return elementWiseBinaryOp(*this, other, std::plus<>());
+    // }
     Derived operator+(const Derived& other) const requires SelfAddable<T>{
         return elementWiseBinaryOp(*this, other, std::plus<>());
     }
