@@ -34,16 +34,16 @@ template<> inline auto make1<Tag1Int>()  { return Tag1Int{1,2,3}; }
 template<> inline auto make1<Tag1Double>()  { return Tag1Double{1.0, 3.3, 9.1}; }
 template<> inline auto make1<Tag1String>()     { return Tag1String{"Hello", "Method", "Verse"}; }
 template<> inline auto make1<Tag1EigenVector3d>()     { return Tag1EigenVector3d{Eigen::Vector3d(1, 2, 3), Eigen::Vector3d(4, 5, 6), Eigen::Vector3d(7, 8, 9)}; }
-template<> inline auto make1<Tag1EigenMatrix3d>()     { return Tag1EigenMatrix3d{Eigen::Matrix3d::Identity(), Eigen::Matrix3d::Ones(), Eigen::Matrix3d::Zero()}; }
+template<> inline auto make1<Tag1EigenMatrix3d>()     { return Tag1EigenMatrix3d{2.0*Eigen::Matrix3d::Identity(), 2.0*Eigen::Matrix3d::Identity(), 2.0*Eigen::Matrix3d::Identity()}; }
 template<> inline auto make1<Tag1EigenQuaterniond>()  { return Tag1EigenQuaterniond{Eigen::Quaterniond(1, 0, 0, 0), Eigen::Quaterniond(2, 0, 0, 0), Eigen::Quaterniond(3, 0, 0, 0)}; }
 
 template<class D> auto make2();
 template<> inline auto make2<Tag2Bool>()     { return Tag2Bool{false, true, false}; }
 template<> inline auto make2<Tag2Int>()  { return Tag2Int{1,2,3}; }
-template<> inline auto make2<Tag2Double>()  { return Tag2Double{1.0, 3.3, 9.1}; }
+template<> inline auto make2<Tag2Double>()  { return Tag2Double{2.0, 6.3, 10.1}; }
 template<> inline auto make2<Tag2String>()     { return Tag2String{"Hello", "Method", "Verse"}; }
 template<> inline auto make2<Tag2EigenVector3d>()     { return Tag2EigenVector3d{Eigen::Vector3d(1, 2, 3), Eigen::Vector3d(4, 5, 6), Eigen::Vector3d(7, 8, 9)}; }
-template<> inline auto make2<Tag2EigenMatrix3d>()     { return Tag2EigenMatrix3d{Eigen::Matrix3d::Identity(), Eigen::Matrix3d::Ones(), Eigen::Matrix3d::Zero()}; }
+template<> inline auto make2<Tag2EigenMatrix3d>()     { return Tag2EigenMatrix3d{Eigen::Matrix3d::Identity(), Eigen::Matrix3d::Identity(), Eigen::Matrix3d::Identity()}; }
 template<> inline auto make2<Tag2EigenQuaterniond>()  { return Tag2EigenQuaterniond{Eigen::Quaterniond(1, 0, 0, 0), Eigen::Quaterniond(2, 0, 0, 0), Eigen::Quaterniond(3, 0, 0, 0)}; }
 
 // Helper definition to organize two tags into one type, which is added to the type list for google typed tests.
@@ -214,9 +214,12 @@ TYPED_TEST(CrossTagTest, EqualityOperator) {
 
 TYPED_TEST(CrossTagTest, ElementWiseBinaryOperationOfSameTag) {
     using L = TypeParam::Lhs;
+    using R = TypeParam::Rhs;
     using T = typename L::value_type;
+    static_assert(std::is_same_v<T, typename R::value_type>, "Lhs and Rhs should have the same value type");
+
     L a = make1<L>();
-    L b = make1<L>();
+    R b = make2<R>();
 
     static_assert(std::is_same_v<category_t<int>, scalar_tag>, "int should be a scalar type");
     static_assert(std::is_same_v<category_t<double>, scalar_tag>, "double should be a scalar type");
@@ -225,43 +228,49 @@ TYPED_TEST(CrossTagTest, ElementWiseBinaryOperationOfSameTag) {
     static_assert(std::is_same_v<category_t<Eigen::Vector3d>, eigen_vec_tag>, "Eigen::Vector3d should be a vector type");
     static_assert(std::is_same_v<category_t<Eigen::Matrix3d>, eigen_mat_tag>, "Eigen::Matrix3d should be a matrix type");
     static_assert(std::is_same_v<category_t<Eigen::Quaterniond>, eigen_quat_tag>, "Eigen::Quaterniond should be a quaternion type");
-    // if constexpr (SelfAddable<typename L::value_type>) {
-    //     // Test addition
-    //     auto add_result = elementWiseBinaryOp(a, b, [](auto x, auto y) { return x + y; });
-    //     EXPECT_EQ(add_result, a+b);
-    // }
-    // else {
-    //     GTEST_SKIP() << "Skipping addition test for non-addable type"
-    //                  << typeid(L).name();
-    // }
+    
+    if constexpr (std::is_same_v<category_t<T>, scalar_tag>) {
+        // Test addition
+        auto add_result = elementWiseBinaryOp<T>(a, b, [](auto x, auto y) { return x + y; });
+        EXPECT_EQ(a + b, L(add_result));
 
-    // if constexpr (SelfSubtractable<typename L::value_type>) {
-    //     // Test addition
-    //     auto subtract_result = elementWiseBinaryOp(a, b, [](auto x, auto y) { return x - y; });
-    //     EXPECT_EQ(subtract_result, a-b);
-    // }
-    // else {
-    //     GTEST_SKIP() << "Skipping addition test for non-addable type"
-    //                  << typeid(L).name();
-    // }
+        // Test subtraction
+        auto sub_result = elementWiseBinaryOp<T>(a, b, [](auto x, auto y) { return x - y; });
+        EXPECT_EQ(a - b, L(sub_result));
 
-    // if constexpr (SelfMultipliable<typename L::value_type>) {
-    //     // Test multiplication
-    //     auto multiply_result = elementWiseBinaryOp(a, b, [](auto x, auto y) { return x * y; });
-    //     EXPECT_EQ(multiply_result, a*b);
-    // }
-    // else {
-    //     GTEST_SKIP() << "Skipping multiplication test for non-multipliable type"
-    //                  << typeid(L).name();
-    // }
+        // Test multiplication
+        auto mul_result = elementWiseBinaryOp<T>(a, b, [](auto x, auto y) { return x * y; });
+        EXPECT_EQ(a * b, L(mul_result));
 
-    // if constexpr (SelfDividable<typename L::value_type>) {
-    //     // Test division
-    //     auto divide_result = elementWiseBinaryOp(a, b, [](auto x, auto y) { return x / y; });
-    //     EXPECT_EQ(divide_result, a/b);
-    // }
-    // else {
-    //     GTEST_SKIP() << "Skipping division test for non-dividable type"
-    //                  << typeid(L).name();
-    // }
+        // Test division
+        auto div_result = elementWiseBinaryOp<T>(a, b, [](auto x, auto y) { return x / y; });
+        EXPECT_EQ(a / b, L(div_result));
+    }
+
+    if constexpr (std::is_same_v<category_t<T>, eigen_mat_tag> ) {
+        // Test addition
+        auto add_result = elementWiseBinaryOp<T>(a, b, [](const auto& x, const auto& y) { return x + y; });
+        EXPECT_EQ(a + b, L(add_result));
+
+        // Test subtraction
+        auto sub_result = elementWiseBinaryOp<T>(a, b, [](const auto& x, const auto& y) { return x - y; });
+        EXPECT_EQ(a - b, L(sub_result));
+
+        // Test multiplication
+        auto mul_result = elementWiseBinaryOp<T>(a, b, [](const auto& x, const auto& y) { return x * y; });
+        EXPECT_EQ(a * b, L(mul_result));
+
+        // Test division
+        auto div_result = elementWiseBinaryOp<T>(a, b, matrix_divide<T>);
+        EXPECT_EQ(a / b, L(div_result));
+
+        // Test CoefWiseMultiply
+        auto coef_mul_result = a.CoefWiseMultiply(b);
+        EXPECT_EQ(a.CoefWiseMultiply(b), L(coef_mul_result));
+
+        // Test CoefWiseDivide
+        auto coef_div_result = a.CoefWiseDivide(b);
+        auto coef_div_expected = L(elementWiseBinaryOp<T>(a, b, coef_wise_divide<T>));
+        EXPECT_EQ(coef_div_expected, coef_div_result);
+    }
 }
