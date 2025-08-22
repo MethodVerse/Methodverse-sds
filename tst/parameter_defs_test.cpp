@@ -250,27 +250,26 @@ TYPED_TEST(CrossTagTest, ElementWiseBinaryOperationOfSameTag) {
     if constexpr (std::is_same_v<category_t<T>, eigen_mat_tag> ) {
         // Test addition
         auto add_result = elementWiseBinaryOp<T>(a, b, [](const auto& x, const auto& y) { return x + y; });
-        EXPECT_EQ(a + b, L(add_result));
+        EXPECT_EQ(L(add_result), a + b);
 
         // Test subtraction
         auto sub_result = elementWiseBinaryOp<T>(a, b, [](const auto& x, const auto& y) { return x - y; });
-        EXPECT_EQ(a - b, L(sub_result));
+        EXPECT_EQ(L(sub_result), a - b);
 
         // Test multiplication
         auto mul_result = elementWiseBinaryOp<T>(a, b, [](const auto& x, const auto& y) { return x * y; });
-        EXPECT_EQ(a * b, L(mul_result));
+        EXPECT_EQ(L(mul_result), a * b);
 
         // Test division
         auto div_result = elementWiseBinaryOp<T>(a, b, matrix_divide<T>);
-        EXPECT_EQ(a / b, L(div_result));
+        EXPECT_EQ(L(div_result), a / b);
 
         // Test CoefWiseMultiply
-        auto coef_mul_result = a.CoefWiseMultiply(b);
-        EXPECT_EQ(a.CoefWiseMultiply(b), L(coef_mul_result));
+        auto coef_mul_result = elementWiseBinaryOp<T>(a, b, coef_wise_multiply<T>);
+        EXPECT_EQ(L(coef_mul_result), a.CoefWiseMultiply(b));
 
         // Test CoefWiseDivide
-        auto coef_div_result = a.CoefWiseDivide(b);
-        auto coef_div_expected = L(elementWiseBinaryOp<T>(a, b, coef_wise_divide<T>));
-        EXPECT_EQ(coef_div_expected, coef_div_result);
+        auto coef_div_result = elementWiseBinaryOp<T>(a, b, coef_wise_divide<T>);
+        EXPECT_EQ(L(coef_div_result), a.CoefWiseDivide(b));
     }
 }

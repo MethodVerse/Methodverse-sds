@@ -17,7 +17,8 @@
 #include <Eigen/Dense>
 #include <limits>
 
-double eps = std::numeric_limits<double>::epsilon();
+inline constexpr double eps = std::numeric_limits<double>::epsilon();
+template<class> inline constexpr bool always_false_v = false;
 
 // Updated macro: concrete parameter types derive from Parameter<T, NAME>
 #define DEFINE_TYPED_PARAMETER(NAME, TEXT_NAME, TYPE, UNIT)                                 \
@@ -173,13 +174,13 @@ namespace mv
                              std::is_same_v<category_t<typename D2::value_type>, eigen_vec_tag>;
 
     template <class T>
-    auto coef_wise_multiple(const T& a, const T& b) {
+    auto coef_wise_multiply(const T& a, const T& b) {
         if constexpr (std::is_same_v<category_t<T>, eigen_vec_tag>) {
             return a.cwiseProduct(b);
         } else if constexpr (std::is_same_v<category_t<T>, eigen_mat_tag>) {
             return a.cwiseProduct(b);
         } else {
-            static_assert(false, "Unsupported type for element-wise multiplication");
+            static_assert(always_false_v<T>, "Unsupported type for element-wise multiplication");
         }
     }
 
@@ -190,7 +191,7 @@ namespace mv
         } else if constexpr (std::is_same_v<category_t<T>, eigen_mat_tag>) {
             return (a.array() / (b.array() + eps)).matrix().eval();
         } else {
-            static_assert(false, "Unsupported type for element-wise division");
+            static_assert(always_false_v<T>, "Unsupported type for element-wise division");
         }
     }
 
@@ -199,7 +200,7 @@ namespace mv
         if constexpr (std::is_same_v<category_t<T>, eigen_mat_tag>) {
             return a * b.inverse();
         } else {
-            static_assert("Unsupported type for matrix multiplication");
+            static_assert(always_false_v<T>, "Unsupported type for matrix multiplication");
         }
     }   
 
@@ -208,7 +209,7 @@ namespace mv
         if constexpr (std::is_same_v<category_t<T>, eigen_vec_tag>) {
             return a.dot(b);
         } else {
-            static_assert("Unsupported type for dot product");
+            static_assert(always_false_v<T>, "Unsupported type for dot product");
         }
     }
 
@@ -217,7 +218,7 @@ namespace mv
         if constexpr (std::is_same_v<category_t<T>, eigen_vec_tag>) {
             return a.cross(b);
         } else {
-            static_assert("Unsupported type for cross product");
+            static_assert(always_false_v<T>, "Unsupported type for cross product");
         }
     }
 
@@ -387,41 +388,41 @@ public:
     // Arithmetic operations with another parameter of the same primitive type.
     template <class D2 = Derived> 
     Derived operator+(const D2& other) const requires Addable<Derived, D2>{
-        return elementWiseBinaryOp<T>(*this, other, std::plus<>());
+        return Derived(elementWiseBinaryOp<T>(*this, other, std::plus<>()));
     }
  
     template <class D2 = Derived>
     Derived operator-(const D2& other) const requires Subtractable<Derived, D2>{
-        return elementWiseBinaryOp<T>(*this, other, std::minus<>());
+        return Derived(elementWiseBinaryOp<T>(*this, other, std::minus<>()));
     }
 
     template <class D2 = Derived>
     Derived operator*(const D2& other) const requires Multipliable<Derived, D2>{
-        return elementWiseBinaryOp<T>(*this, other, std::multiplies<>());
+        return Derived(elementWiseBinaryOp<T>(*this, other, std::multiplies<>()));
     }
 
     template <class D2 = Derived>
     Derived operator/(const D2& other) const requires Divisible<Derived, D2>{
         if constexpr (std::is_same_v<category_t<typename Derived::value_type>, eigen_mat_tag>) {
-            return elementWiseBinaryOp<T>(*this, other, matrix_divide<typename Derived::value_type>);
+            return Derived(elementWiseBinaryOp<T>(*this, other, matrix_divide<typename Derived::value_type>));
         } else {
-            return elementWiseBinaryOp<T>(*this, other, std::divides<>());
+            return Derived(elementWiseBinaryOp<T>(*this, other, std::divides<>()));
         }        
     }
 
     template <class D2 = Derived>
     Derived operator&&(const D2& other) const requires AndableBool<Derived, D2> {
-        return elementWiseBinaryOp<T>(*this, other, std::logical_and<>());
+        return Derived(elementWiseBinaryOp<T>(*this, other, std::logical_and<>()));
     }
 
     template <class D2 = Derived>
     Derived operator||(const D2& other) const requires OrableBool<Derived, D2> {
-        return elementWiseBinaryOp<T>(*this, other, std::logical_or<>());
+        return Derived(elementWiseBinaryOp<T>(*this, other, std::logical_or<>()));
     }
 
     template <class D2 = Derived>
     Derived operator^(const D2& other) const requires XorableBool<Derived, D2> {
-        return elementWiseBinaryOp<T>(*this, other, std::bit_xor<>());
+        return Derived(elementWiseBinaryOp<T>(*this, other, std::bit_xor<>()));
     }
 
     Derived operator!() const requires NotableBool<Derived> {
@@ -435,7 +436,7 @@ public:
     // Element-wise multiplication and division for Eigen types.
     template <class D2 = Derived>
     Derived CoefWiseMultiply(const D2& other) const requires EleWiseMultipliable<Derived, D2> {
-        return Derived(elementWiseBinaryOp<T>(*this, other, coef_wise_multiple<T>));
+        return Derived(elementWiseBinaryOp<T>(*this, other, coef_wise_multiply<T>));
     }
 
     template <class D2 = Derived>
@@ -452,9 +453,9 @@ public:
 
     // Cross product for Eigen vector of scalars, not a Parameter.
     template <class D2 = Derived>
-    auto Cross(const D2& other) const requires CrossProductible<Derived, D2> {
+    Derived Cross(const D2& other) const requires CrossProductible<Derived, D2> {
         // Can only return a std::vectorof matrices, not a Parameter 
-        return elementWiseBinaryOp<T>(*this, other, cross_product<T>);
+        return Derived(elementWiseBinaryOp<T>(*this, other, cross_product<T>));
     }
 
     size_t Size() const noexcept { return value_.size(); }
