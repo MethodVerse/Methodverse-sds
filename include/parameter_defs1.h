@@ -154,7 +154,7 @@ public:
 
     // Operator ==
     bool operator==(const ParameterBase& other) const {
-        return value_ == other.value_ && Unit == other.GetUnit();
+            return value_ == other.value_;
     }
 
     // Access operator for single value, e.g. te[0] = 1.0; auto x = te[1];
