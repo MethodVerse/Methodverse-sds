@@ -19,6 +19,22 @@ FetchContent_Declare(
 # Disable building of Eigen's tests, using populate instead of makeavailable.
 FetchContent_Populate(eigen)
 
-target_include_directories(hello_methodverse PUBLIC ${eigen_SOURCE_DIR})
+# Fetch Boost.MP11 (header-only)
+FetchContent_Declare(
+  boost_mp11
+  GIT_REPOSITORY https://github.com/boostorg/mp11.git
+  GIT_TAG boost-1.86.0   # pick a stable tag, matches Boost release
+)
+
+FetchContent_MakeAvailable(boost_mp11)
+
+# Add include directory for your target(s)
+target_include_directories(hello_methodverse PUBLIC ${boost_mp11_SOURCE_DIR}/include)
+
+SET(MP_UNITS_INCLUDE_DIR 
+    "${CMAKE_SOURCE_DIR}/external/mp-units/core/include"
+    "${CMAKE_SOURCE_DIR}/external/mp-units/systems/include")
+
+target_include_directories(hello_methodverse PUBLIC ${eigen_SOURCE_DIR} ${MP_UNITS_INCLUDE_DIR})
 
 add_subdirectory(tst)
