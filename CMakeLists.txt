@@ -28,6 +28,19 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(boost_mp11)
 
+# Fetch fmt library, which is needed for mp-units
+FetchContent_Declare(
+  fmt
+  GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+  GIT_TAG 11.0.2   # pick the latest stable release
+)
+
+# Make it available
+FetchContent_MakeAvailable(fmt)
+
+# Link it to your target
+target_link_libraries(hello_methodverse PRIVATE fmt::fmt)
+
 # Add include directory for your target(s)
 target_include_directories(hello_methodverse PUBLIC ${boost_mp11_SOURCE_DIR}/include)
 

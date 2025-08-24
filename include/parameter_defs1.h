@@ -16,6 +16,7 @@
 #include <concepts>
 #include <Eigen/Dense>
 #include <limits>
+#define MP_UNITS_USE_FMTLIB 1
 #include <mp-units/core.h>
 #include <mp-units/systems/si.h>
 
