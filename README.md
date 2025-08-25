@@ -106,6 +106,7 @@ CMakePresets.json            # Preset definitions for build configurations
 
 - mp-units
 - google test
+- PlantUML (jebbs)
 
 ---
 Android builds are supported, and macOS support is planned for future updates. Android platform is currently tested via android emulator in linux runners through GitHub Actions, rather than the local development environment.
