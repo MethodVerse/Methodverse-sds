@@ -4,11 +4,11 @@ Sequence Design &amp; Simulation System
 
 This project is a C++-based sequence framework built with CMake and designed for cross-platform development and debugging in Visual Studio Code.
 
-## 🛠️ Build Instructions
+## Build Instructions
 
 Follow these steps to configure and build the project:
 
-### ✅ Step 1: Clean Up
+### Step 1: Clean Up
 
 Remove previous build artifacts and intermediate files (when necessary):
 
@@ -18,7 +18,7 @@ Remove previous build artifacts and intermediate files (when necessary):
 
 ---
 
-### ✅ Step 2: Generate VS Code Task and Launch Files
+### Step 2: Generate VS Code Task and Launch Files
 
 This step sets up:
 - **VS Code tasks** for CMake configure/build
@@ -28,13 +28,13 @@ This step sets up:
 .\tools\generate_vscode_files.py
 ```
 
-> 📌 **Note:**
+> **Note:**
 > - Task files help automate CMake configure and build.
 > - Launch files are for running and debugging executables in VS Code.
 
 ---
 
-### ✅ Step 3: Configure with CMake Preset
+### Step 3: Configure with CMake Preset
 
 Configure the project using a CMake preset defined in `CMakePresets.json`:
 
@@ -49,7 +49,7 @@ Other available presets:
 
 ---
 
-### ✅ Step 4: Build the Project
+### Step 4: Build the Project
 
 Compile using the same preset:
 
@@ -59,7 +59,7 @@ cmake --build . --preset x64-debug
 
 ---
 
-### ✅ Step 5: Run Tests
+### Step 5: Run Tests
 
 Run the test executable (example: parameter module test):
 
@@ -69,7 +69,7 @@ Run the test executable (example: parameter module test):
 
 ---
 
-## 🚧 Additional Steps
+## Additional Steps
 
 More steps and modules will be documented as the project evolves.
 
@@ -77,7 +77,7 @@ Stay tuned!
 
 ---
 
-## 📁 File Structure (partial)
+## File Structure (partial)
 
 ```
 tools/
@@ -94,7 +94,7 @@ CMakePresets.json            # Preset definitions for build configurations
 
 ---
 
-## 📎 Requirements
+## Requirements
 
 - CMake ≥ 3.21
 - Ninja (recommended)
@@ -102,6 +102,12 @@ CMakePresets.json            # Preset definitions for build configurations
 - Python 3 (for tools)
 - VS Code with CMake Tools & C++ extensions
 
+## Third parties
+
+- mp-units
+- google test
+- PlantUML (jebbs)
+
 ---
 Android builds are supported, and macOS support is planned for future updates. Android platform is currently tested via android emulator in linux runners through GitHub Actions, rather than the local development environment.
-Feel free to share feedback, submit issues or feature requests, and contribute to or extend the build system. 🚀
+Feel free to share feedback, submit issues or feature requests, and contribute to or extend the build system. 
