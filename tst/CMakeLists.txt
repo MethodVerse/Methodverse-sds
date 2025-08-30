@@ -22,3 +22,8 @@ add_executable(parameterbase_test parameterbase_test.cpp)
 target_include_directories(parameterbase_test PRIVATE ${CMAKE_SOURCE_DIR}/include ${eigen_SOURCE_DIR} ${MP_UNITS_INCLUDE_DIR} ${boost_mp11_SOURCE_DIR}/include)
 target_link_libraries(parameterbase_test gtest_main fmt::fmt)
 add_test(NAME parameterbase_test COMMAND parameterbase_test)
+
+add_executable(primitive_operators_test primitive_operators_test.cpp)
+target_include_directories(primitive_operators_test PRIVATE ${CMAKE_SOURCE_DIR}/include ${eigen_SOURCE_DIR} ${MP_UNITS_INCLUDE_DIR} ${boost_mp11_SOURCE_DIR}/include)
+target_link_libraries(primitive_operators_test gtest_main fmt::fmt)
+add_test(NAME primitive_operators_test COMMAND primitive_operators_test)

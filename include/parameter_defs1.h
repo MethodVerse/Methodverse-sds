@@ -19,6 +19,7 @@
 #define MP_UNITS_USE_FMTLIB 1
 #include <mp-units/core.h>
 #include <mp-units/systems/si.h>
+#include "primitive_operators.h"
 
 using namespace mp_units;
 inline constexpr double eps = std::numeric_limits<double>::epsilon();
@@ -30,51 +31,51 @@ namespace mv
     // Different primitives have different operations, or different behaviors inside the operations. We use these 
     // tags to distinguish and therefore guide the implementation of the operators, namely, + - * /, dot product, 
     // matrix multiplication, bolean operations, etc.
-    struct scalar_tag {};
-    struct string_tag {};
-    struct bool_tag {};
-    struct eigen_quat_tag {};
-    struct eigen_vec_tag {};
-    struct eigen_mat_tag {};
+    // struct scalar_tag {};
+    // struct string_tag {};
+    // struct bool_tag {};
+    // struct eigen_quat_tag {};
+    // struct eigen_vec_tag {};
+    // struct eigen_mat_tag {};
 
-    template <class T, class = void>
-    struct category {
-        using type = scalar_tag;
-    };
+    // template <class T, class = void>
+    // struct category {
+    //     using type = scalar_tag;
+    // };
 
-    template <class T>
-    struct category<T, std::enable_if_t<std::is_convertible_v<std::remove_cvref_t<T>, std::string>>> {
-         using type = string_tag;
-    };
+    // template <class T>
+    // struct category<T, std::enable_if_t<std::is_convertible_v<std::remove_cvref_t<T>, std::string>>> {
+    //      using type = string_tag;
+    // };
 
-    template <>
-    struct category<bool> {
-        using type = bool_tag;
-    };
+    // template <>
+    // struct category<bool> {
+    //     using type = bool_tag;
+    // };
 
-    template <class T>       
-    struct category<T, std::void_t< // Check if T is an Eigen type  
-        decltype(std::remove_cvref_t<T>::RowsAtCompileTime),
-        decltype(std::remove_cvref_t<T>::ColsAtCompileTime)>>{
-        using U = std::remove_cvref_t<T>;
-        using type = std::conditional_t<
-            (U::RowsAtCompileTime == 1 || U::ColsAtCompileTime == 1), eigen_vec_tag, eigen_mat_tag>;
-    };
+    // template <class T>       
+    // struct category<T, std::void_t< // Check if T is an Eigen type  
+    //     decltype(std::remove_cvref_t<T>::RowsAtCompileTime),
+    //     decltype(std::remove_cvref_t<T>::ColsAtCompileTime)>>{
+    //     using U = std::remove_cvref_t<T>;
+    //     using type = std::conditional_t<
+    //         (U::RowsAtCompileTime == 1 || U::ColsAtCompileTime == 1), eigen_vec_tag, eigen_mat_tag>;
+    // };
 
-    template<class T>
-    struct category<T, std::enable_if_t<std::is_same_v<std::remove_cvref_t<T>, Eigen::Quaterniond>>>{
-        using type = eigen_quat_tag;
-    };
+    // template<class T>
+    // struct category<T, std::enable_if_t<std::is_same_v<std::remove_cvref_t<T>, Eigen::Quaterniond>>>{
+    //     using type = eigen_quat_tag;
+    // };
 
-    template <class T>
-    using category_t = typename category<std::remove_cvref_t<T>>::type;
+    // template <class T>
+    // using category_t = typename category<std::remove_cvref_t<T>>::type;
 
-    template <class T, class Derived>
-    struct Parameter; // forward declaration
+    // template <class T, class Derived>
+    // struct Parameter; // forward declaration
 
-    template <class D>
-    concept ParameterLike = requires {typename D::value_type; D::unit; D::name; } &&
-                            std::is_base_of_v<Parameter<typename D::value_type, D>, D>;
+    // template <class D>
+    // concept ParameterLike = requires {typename D::value_type; D::unit; D::name; } &&
+    //                         std::is_base_of_v<Parameter<typename D::value_type, D>, D>;
 
 
  // ======== IParameter base interface ========
@@ -192,4 +193,25 @@ public:
     static constexpr auto  GetUnit() noexcept { return unit_;}
     std::size_t Size() const noexcept { return value_.size();}
 };
+
+template<class T, class Derived, class Category, mp_units::Reference auto Unit = mp_units::one>
+class Parameter;
+
+// Scalars (int, double, …)
+template<class T, class Derived, mp_units::Reference auto Unit>
+class Parameter<T, Derived, scalar_tag, Unit> : public ParameterBase<T, Derived, Unit> {
+public:
+  using Base = ParameterBase<T, Derived, Unit>;
+  using Base::Base;
+  //using Base::value_; using Base::elementWiseBinaryOp; // etc.
+
+  template<class D2> Derived operator+(const D2&) const /*requires Addable*/;
+  template<class D2> Derived operator-(const D2&) const /*…*/;
+  template<class D2> Derived operator*(const D2&) const /*…*/;
+  template<class D2> Derived operator/(const D2&) const /*…*/;
+  // no Dot/Cross here, so they simply don't exist in the interface
+};
+
+
+
 }

@@ -63,7 +63,7 @@ struct Param : public ParameterBase<T, Param<T,U>, U> {
     static constexpr std::string_view name = "Param";
 };
 
-// Helpper to convert a value to type, because 
+// Helpper to convert a value to type 
 template<auto U>
 using UnitC = std::integral_constant<decltype(U), U>;
 
