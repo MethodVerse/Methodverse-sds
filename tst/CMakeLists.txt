@@ -27,3 +27,8 @@ add_executable(primitive_operators_test primitive_operators_test.cpp)
 target_include_directories(primitive_operators_test PRIVATE ${CMAKE_SOURCE_DIR}/include ${eigen_SOURCE_DIR} ${MP_UNITS_INCLUDE_DIR} ${boost_mp11_SOURCE_DIR}/include)
 target_link_libraries(primitive_operators_test gtest_main fmt::fmt)
 add_test(NAME primitive_operators_test COMMAND primitive_operators_test)
+
+add_executable(primitive_operators_test1 primitive_operators_test1.cpp)
+target_include_directories(primitive_operators_test1 PRIVATE ${CMAKE_SOURCE_DIR}/include ${eigen_SOURCE_DIR} ${MP_UNITS_INCLUDE_DIR} ${boost_mp11_SOURCE_DIR}/include)
+target_link_libraries(primitive_operators_test1 gtest_main fmt::fmt)
+add_test(NAME primitive_operators_test1 COMMAND primitive_operators_test1)
