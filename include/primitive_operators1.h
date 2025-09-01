@@ -75,21 +75,8 @@ struct category {
     template <class T>
     concept is_allowed_primitive = boost::mp11::mp_contains<primitive_types, T>::value;
 
-    // ---- traits: variant index of a type
-    template <class V, class T, std::size_t I = 0>
-    consteval std::size_t variant_index_of() {
-        if constexpr (I == std::variant_size_v<V>)
-            return std::variant_npos;
-        else if constexpr (std::is_same_v<T, std::variant_alternative_t<I, V>>)
-            return I;
-        else
-            return variant_index_of<V, T, I + 1>();
-    }
-
-    // ---- result type of a function pointer. we need this is that the operations on two types may return 
-    template<class> struct fnptr_result;
-    template<class R, class... A> struct fnptr_result<R(*)(A...)> { using type = R; };
-
+    // ---- op policy
+    // primary template, not defined
     template<class C1, class C2, class Op>
     struct op_policy { static constexpr bool enabled = false; };
 }; // namespace mv
