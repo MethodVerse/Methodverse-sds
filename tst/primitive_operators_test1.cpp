@@ -42,15 +42,10 @@ TEST(OpPolicyAdd, QuatQuat) {
     EXPECT_EQ(r.coeffs(), q1.coeffs() + q2.coeffs());
 }
 
-// scalar * scalar
-TEST(OpPolicyMul, ScalarScalar) {
-    auto r = op_policy<scalar_tag,scalar_tag,mul_op>::impl(3, 2);
-    EXPECT_EQ(r, 6);
-}
-
 // vector / scalar
 TEST(OpPolicyDiv, VectorScalar) {
     Eigen::Vector3d v(2,4,6);
-    Eigen::Vector3d r = op_policy<eigen_vecmat_tag,scalar_tag,div_op>::impl(v,2.0);
+    Eigen::Vector3d r = op_policy<eigen_colvec_tag,scalar_tag,div_op>::impl(v,2.0);
     EXPECT_EQ(r, Eigen::Vector3d(1,2,3));
 }
+

@@ -93,7 +93,7 @@ public:
     decltype(auto) operator[](size_t i) const { return value_.at(i); }
 
     std::string Name() const override { return "ParameterBase"; }
-    
+
     // serialization to string
     [[nodiscard]] std::string ValueAsString() const override {
         std::ostringstream oss;
@@ -124,11 +124,49 @@ public:
     std::size_t Size() const noexcept { return value_.size();}
 
     // ----------------
-    // Binary operators
+    // Binary operators, we can probably use MACRO to reduce duplication of code
     // ----------------
+    // ---- Operator +
     template<class T2, mp_units::Reference auto Unit2>
+    requires (op_allowed<op_policy<category_t<T>, category_t<T2>, add_op>, T, T2>)
     auto operator+(const ParameterBase<T2, Unit2>& rhs) const {
         using policy = op_policy<category_t<T>, category_t<T2>, add_op>;
+        using T3 = op_return_t<policy, T, T2>;
+        constexpr auto Unit3 = policy::template unit_of<Unit, Unit2>();
+
+        auto r = policy::template impl<T, T2>(Val(), rhs.Val());
+        return ParameterBase<T3, Unit3>(r);
+    }
+
+    // ---- Operator -
+    template<class T2, mp_units::Reference auto Unit2>
+    requires (op_allowed<op_policy<category_t<T>, category_t<T2>, sub_op>, T, T2>)
+    auto operator-(const ParameterBase<T2, Unit2>& rhs) const {
+        using policy = op_policy<category_t<T>, category_t<T2>, sub_op>;
+        using T3 = op_return_t<policy, T, T2>;
+        constexpr auto Unit3 = policy::template unit_of<Unit, Unit2>();
+
+        auto r = policy::template impl<T, T2>(Val(), rhs.Val());
+        return ParameterBase<T3, Unit3>(r);
+    }    
+
+    // ---- Operator *
+    template<class T2, mp_units::Reference auto Unit2>
+    requires (op_allowed<op_policy<category_t<T>, category_t<T2>, mul_op>, T, T2>)
+    auto operator*(const ParameterBase<T2, Unit2>& rhs) const {
+        using policy = op_policy<category_t<T>, category_t<T2>, mul_op>;
+        using T3 = op_return_t<policy, T, T2>;
+        constexpr auto Unit3 = policy::template unit_of<Unit, Unit2>();
+
+        auto r = policy::template impl<T, T2>(Val(), rhs.Val());
+        return ParameterBase<T3, Unit3>(r);
+    }
+
+    // ---- Operator /
+    template<class T2, mp_units::Reference auto Unit2>
+    requires (op_allowed<op_policy<category_t<T>, category_t<T2>, div_op>, T, T2>)
+    auto operator/(const ParameterBase<T2, Unit2>& rhs) const {
+        using policy = op_policy<category_t<T>, category_t<T2>, div_op>;
         using T3 = op_return_t<policy, T, T2>;
         constexpr auto Unit3 = policy::template unit_of<Unit, Unit2>();
 

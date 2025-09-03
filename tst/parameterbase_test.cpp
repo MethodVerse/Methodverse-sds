@@ -9,31 +9,6 @@
 using namespace mv;
 using namespace mp_units;
 
-// Define a dummy parameter class for testing
-template<class T, class Derived, auto U>
-struct ParamCRTP : public ParameterBase<T, U> {
-    using ParameterBase<T, U>::ParameterBase;
-    static constexpr const char* name = "ParamCRTP";
-};
-
-template<class T, auto U>
-class Param: public ParamCRTP<T, Param<T, U>, U> {
-public:
-    using Base = ParamCRTP<T, Param<T,U>, U>;
-    using Base::Base;
-    static constexpr const char* name = "Param";
-    std::string Name() const override {
-        return name;
-    }
-};
-
-// Helpper to convert a value to type 
-template<auto U>
-using UnitC = std::integral_constant<decltype(U), U>;
-
-using Ts    = boost::mp11::mp_list<double, int, bool, std::string, Eigen::Vector3d, Eigen::Matrix3d, Eigen::Quaterniond>;
-using Units = boost::mp11::mp_list<UnitC<si::metre>, UnitC<si::second>, UnitC<si::tesla>>;
-
 // Define factory methods to return primitive values for different parameter types
 // Coveats: we have to define methods for all possible primitie types used in the tests, in Ts;
 //          we also fixed the number of values (3) to be returned for each type.
@@ -59,6 +34,32 @@ template<> inline std::vector<Eigen::Matrix3d> make<Eigen::Matrix3d>() {
 template<> inline std::vector<Eigen::Quaterniond> make<Eigen::Quaterniond>()  { 
     return std::vector{Eigen::Quaterniond(1, 0, 0, 0), Eigen::Quaterniond(2, 0, 0, 0), Eigen::Quaterniond(3, 0, 0, 0)}; 
 }
+
+// Define a dummy parameter class for testing
+template<class T, class Derived, auto U>
+struct ParamCRTP : public ParameterBase<T, U> {
+    using ParameterBase<T, U>::ParameterBase;
+    static constexpr const char* name = "ParamCRTP";
+};
+
+template<class T, auto U>
+class Param: public ParamCRTP<T, Param<T, U>, U> {
+public:
+    using Base = ParamCRTP<T, Param<T,U>, U>;
+    using Base::Base;
+    static constexpr const char* name = "Param";
+    std::string Name() const override {
+        return name;
+    }
+};
+
+// Helpper to convert a value to type 
+template<auto U>
+using UnitC = std::integral_constant<decltype(U), U>;
+
+// Define the types and units to be tested, and the resulting Param<T,U> types
+using Ts    = boost::mp11::mp_list<double, int, bool, std::string, Eigen::Vector3d, Eigen::Matrix3d, Eigen::Quaterniond>;
+using Units = boost::mp11::mp_list<UnitC<si::metre>, UnitC<si::second>, UnitC<si::tesla>>;
 
 template<class T, class U>
 using MakeParam = Param<T, U::value>;
@@ -285,4 +286,22 @@ TEST(OpPolicyAdd, ScalarScalar) {
     auto r = p1 + p2;
     EXPECT_DOUBLE_EQ(r.Val(), 5.5);
     static_assert(std::is_same_v<decltype(r), ParameterBase<double, si::metre>>);
+}
+
+TEST(OpPolicyMul, ScalarScalarResultantValuAndUnitCorrect) {
+    constexpr auto Hz_per_T = si::hertz / si::tesla;
+    constexpr auto T_per_m = si::tesla / si::metre;
+    
+    Param<double, Hz_per_T> gamma(42.577478461e6);
+    Param<double, T_per_m> grad_str(10.0);
+    Param<double, si::second> dt(0.001);
+
+    auto gamma_grad = gamma * grad_str; // should be of unit hertz/metre
+    //EXPECT_DOUBLE_EQ(gamma_grad.Val(), 425774.78461);
+    auto r = gamma * grad_str * dt; // should be of unit hertz/metre * tesla/metre * second = hertz/metre
+    EXPECT_DOUBLE_EQ(r.Val(), 425774.78461);
+    //using ExpectedType = ParameterBase<double, si::hertz / si::metre / si::second>;
+    static_assert(si::hertz / si::metre * si::second == decltype(r)::GetUnit(), "Unit should be hertz/metre/second");
+    std::cout << "r unit: " << decltype(r)::GetUnit() << "\n";
+
 }
