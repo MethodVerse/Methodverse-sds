@@ -29,6 +29,7 @@ namespace mv {
     struct transpose_op {};
     struct inverse_op {};
     struct coefw_mul_op {};
+    struct coefw_div_op {};
     struct dot_op {};
     struct cross_op {};
 
@@ -48,19 +49,22 @@ namespace mv {
     template<class T, class Tag> 
     concept is_category_of = boost::mp11::mp_contains<typename Tag::types, T>::value;
 
-template<class T>
-struct category {
-    using type =
-        std::conditional_t<is_category_of<T, scalar_tag>,      scalar_tag,
-        std::conditional_t<is_category_of<T, string_tag>,      string_tag,
-        std::conditional_t<is_category_of<T, bool_tag>,        bool_tag,
-        std::conditional_t<is_category_of<T, eigen_quat_tag>,  eigen_quat_tag,
-        std::conditional_t<is_category_of<T, eigen_colvec_tag>,eigen_colvec_tag,
-        std::conditional_t<is_category_of<T, eigen_rowvec_tag>,eigen_rowvec_tag,
-        std::conditional_t<is_category_of<T, eigen_mat_tag>,   eigen_mat_tag,
-        void>>>>>>>;
-    static_assert(!std::is_same_v<type, void>, "Type not in any category");
-};
+    template<class T>
+    struct category {
+        using type =
+            std::conditional_t<is_category_of<T, scalar_tag>,      scalar_tag,
+            std::conditional_t<is_category_of<T, string_tag>,      string_tag,
+            std::conditional_t<is_category_of<T, bool_tag>,        bool_tag,
+            std::conditional_t<is_category_of<T, eigen_quat_tag>,  eigen_quat_tag,
+            std::conditional_t<is_category_of<T, eigen_colvec_tag>,eigen_colvec_tag,
+            std::conditional_t<is_category_of<T, eigen_rowvec_tag>,eigen_rowvec_tag,
+            std::conditional_t<is_category_of<T, eigen_mat_tag>,   eigen_mat_tag,
+            void>>>>>>>;
+        static_assert(!std::is_same_v<type, void>, "Type not in any category");
+    };
+
+    template<class T>
+    using category_t = typename category<T>::type;
 
     using primitive_types = boost::mp11::mp_list<
         bool, 

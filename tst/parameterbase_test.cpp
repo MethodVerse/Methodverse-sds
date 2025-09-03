@@ -9,58 +9,22 @@
 using namespace mv;
 using namespace mp_units;
 
-//     template <auto Unit, class T>
-//     struct ParameterTest{
-//     public:
-//         static constexpr auto unit = Unit;
-//         using value_type = T;
-//         value_type value;
-//         ParameterTest() = default;
-//         ParameterTest(const value_type& v) : value(v) {}
-
-//         template <class ResultT, auto OtherUnit, class OtherT>
-//         auto multiply(const ParameterTest<OtherUnit, OtherT>& other) const {
-//             return ParameterTest<unit * other.unit, ResultT>{value * other.value};
-//         }
-
-//         template <class ResultT, auto OtherUnit, class OtherT>
-//         auto divide(const ParameterTest<OtherUnit, OtherT>& other) const {
-//             return ParameterTest<unit / other.unit, ResultT>{value / other.value};
-//         }
-//     };
-
-// // Example: Length parameter in metres with double
-// using LengthParam = ParameterTest<si::metre, double>;
-// using TimeParam   = ParameterTest<si::second, int>;
-
-// TEST(ParameterTest, UnitIsSetCorrectly) {
-//     // Check that the static unit matches what we passed in
-//     EXPECT_TRUE((std::same_as<decltype(LengthParam::unit), decltype(mp_units::si::metre)>));
-//     EXPECT_TRUE((std::same_as<decltype(TimeParam::unit), decltype(mp_units::si::second)>));
-
-//     LengthParam lp(2.0);
-//     TimeParam tp(3);
-//     auto result_multiply = lp.multiply<double>(tp); // result should be of type ParameterTest<si::metre*si::second, double>
-//     auto result_divide = lp.divide<double>(tp);     // result should be of type ParameterTest<si::metre/si::second, double>
-//     std::cout << "Mul Result: " << result_multiply.value << " " << result_multiply.unit << std::endl;
-//     std::cout << "Div Result: " << result_divide.value << " " << result_divide.unit << std::endl;
-// }
-
-// TEST(ParameterTest, ValueTypeIsSetCorrectly) {
-//     // Check that the value_type alias matches what we passed in
-//     EXPECT_TRUE((std::is_same_v<LengthParam::value_type, double>));
-//     EXPECT_TRUE((std::is_same_v<TimeParam::value_type, int>));
-// }
-
-// struct Par1 : ParameterBase<int, Par1, si::metre> { using ParameterBase::ParameterBase; };
-
-
-
 // Define a dummy parameter class for testing
+template<class T, class Derived, auto U>
+struct ParamCRTP : public ParameterBase<T, U> {
+    using ParameterBase<T, U>::ParameterBase;
+    static constexpr const char* name = "ParamCRTP";
+};
+
 template<class T, auto U>
-struct Param : public ParameterBase<T, Param<T,U>, U> {
-    using ParameterBase<T, Param<T,U>, U>::ParameterBase;
-    static constexpr std::string_view name = "Param";
+class Param: public ParamCRTP<T, Param<T, U>, U> {
+public:
+    using Base = ParamCRTP<T, Param<T,U>, U>;
+    using Base::Base;
+    static constexpr const char* name = "Param";
+    std::string Name() const override {
+        return name;
+    }
 };
 
 // Helpper to convert a value to type 
@@ -312,4 +276,13 @@ TYPED_TEST(ParameterBaseTypedTest, EqualityOperator) {
     Param<T, U> p1(primitive_values);
 
     EXPECT_EQ(pe, p1);
+}
+
+
+TEST(OpPolicyAdd, ScalarScalar) {
+    Param<double, si::metre> p1(2.0);
+    Param<double, si::metre> p2(3.5);
+    auto r = p1 + p2;
+    EXPECT_DOUBLE_EQ(r.Val(), 5.5);
+    static_assert(std::is_same_v<decltype(r), ParameterBase<double, si::metre>>);
 }

@@ -41,15 +41,11 @@ public:
     virtual std::string ValueAsString() const = 0;
 };
 
-template<typename T, typename Derived, mp_units::Reference auto Unit = mp_units::one>
+template<typename T, mp_units::Reference auto Unit = mp_units::one>
 class ParameterBase : public IParameter {
 protected:
     std::vector<T> value_;
     static constexpr auto unit_ = Unit;
-
-    // CRTP helpers
-    Derived &derived() { return static_cast<Derived &>(*this); }
-    const Derived &derived() const { return static_cast<const Derived &>(*this); }
 
 public:
     using value_type = T;
@@ -65,57 +61,40 @@ public:
 
     ParameterBase &operator=(ParameterBase &&) noexcept = default;
 
-    // TE te(1.0);
     ParameterBase(const T& value) : value_{value} {}
 
-    // TE te(std::vector);
     ParameterBase(const std::vector<T>& values) : value_(values) {}
 
-    // TE te({1.0, 2.0, 3.0});
     ParameterBase(std::initializer_list<T> values) : value_(values) {}
 
-
-    // assignment operators. e.g. TE te = 1.0;
-    Derived& operator=(const T& rhs) {
-        if (value_.empty()) value_.resize(1);
-        value_[0] = rhs;
-        return static_cast<Derived&>(*this);
-    }
-
-    // E.g. TE te = std::vector{1.0, 2.0, 3.0};
-    Derived& operator=(const std::vector<T>& rhs) {
-        value_ = rhs;
-        return static_cast<Derived&>(*this);
-    }
-
-    // E.g. TE te = {1.0, 2.0, 3.0};
-    Derived& operator=(std::initializer_list<T> rhs) {
-        value_ = rhs;
-        return static_cast<Derived&>(*this);
-    }
-
-    // Conversion to T, e.g. double x = te.Val();
+    // Conversion to T
     [[nodiscard]] T Val() const noexcept {
         return value_.empty() ? T{} : value_[0];
     }
 
-    // Conversion operator to std::vector<T>, e.g. auto vec = static_cast<std::vector<double>>(te);
+    // Conversion to vector
     [[nodiscard]] std::vector<T> Vals() const noexcept {
         return value_;
     }
 
     // Operator ==
-    bool operator==(const ParameterBase& other) const {
-            return value_ == other.value_;
+    template <class T2, auto Unit2>
+    bool operator==(const ParameterBase<T2, Unit2> &other) const {
+        if constexpr (Unit == Unit2) {
+            return value_ == other.Get();
+        }
+        else {
+            return false;
+        }
     }
 
-    // Access operator for single value, e.g. te[0] = 1.0; auto x = te[1];
+    // Access operator
     decltype(auto) operator[](size_t i) { return value_.at(i); }
     decltype(auto) operator[](size_t i) const { return value_.at(i); }
 
-    [[nodiscard]] std::string Name() const override { return std::string(Derived::name); }
-
-    // serialization to string, e.g. "TE: [1.0, 2.0, 3.0]"
+    std::string Name() const override { return "ParameterBase"; }
+    
+    // serialization to string
     [[nodiscard]] std::string ValueAsString() const override {
         std::ostringstream oss;
         oss << std::boolalpha;
@@ -132,7 +111,7 @@ public:
         return oss.str();
     }
 
-    // Getter and setter for the value.
+    // Getter/setter
     [[nodiscard]] std::vector<T>& Get() noexcept { return value_; }
     [[nodiscard]] const std::vector<T>& Get() const noexcept { return value_; }
     void Set(const T& v) {
@@ -143,33 +122,59 @@ public:
     void Set(std::initializer_list<T> values) { value_ = values;}
     static constexpr auto  GetUnit() noexcept { return unit_;}
     std::size_t Size() const noexcept { return value_.size();}
-};
 
-template<class T, class Derived, mp_units::Reference auto Unit>
-class Parameter : public ParameterBase<T, Derived, Unit> {
-public:
-    using Base = ParameterBase<T, Derived, Unit>;
-    using Base::Base;
+    // ----------------
+    // Binary operators
+    // ----------------
+    template<class T2, mp_units::Reference auto Unit2>
+    auto operator+(const ParameterBase<T2, Unit2>& rhs) const {
+        using policy = op_policy<category_t<T>, category_t<T2>, add_op>;
+        using T3 = op_return_t<policy, T, T2>;
+        constexpr auto Unit3 = policy::template unit_of<Unit, Unit2>();
 
-    // Arithmetic operators
-    template <class D2, class DR>
-    DR operator+(const D2 &d2) const {
-        PARAMETER_BINARY_PRECHECK(add_op, "operator+");
-        auto r = policy::template impl<value_type_lhs, value_type_rhs>(
-            this->Val(), static_cast<const D2&>(d2).Val()
-        );
-        DR result;
-        result.Set(r);
-        return result; 
+        auto r = policy::template impl<T, T2>(Val(), rhs.Val());
+        return ParameterBase<T3, Unit3>(r);
     }
 
-    template <class D2>
-    Derived operator-(const D2 &) const /*…*/;
-    template <class D2>
-    Derived operator*(const D2 &) const /*…*/;
-    template <class D2>
-    Derived operator/(const D2 &) const /*…*/;
-    // no Dot/Cross here, so they simply don't exist in the interface
+    // Similarly implement -, *, / with the right op tags
+};
+
+
+template<class T, class Derived, mp_units::Reference auto Unit>
+class Parameter : public ParameterBase<T, Unit> {
+public:
+    using Base = ParameterBase<T, Unit>;
+    using Base::Base;
+
+    static constexpr const char* name = Derived::name;
+
+    // CRTP assignment operators
+    Derived& operator=(const T& rhs) {
+        if (this->value_.empty()) this->value_.resize(1);
+        this->value_[0] = rhs;
+        return static_cast<Derived&>(*this);
+    }
+
+    Derived& operator=(const std::vector<T>& rhs) {
+        this->value_ = rhs;
+        return static_cast<Derived&>(*this);
+    }
+
+    Derived& operator=(std::initializer_list<T> rhs) {
+        this->value_ = rhs;
+        return static_cast<Derived&>(*this);
+    }
+
+    // CRTP-specific functions
+    [[nodiscard]] std::string Name() const override {
+        return std::string(Derived::name);
+    }
+
+    // Rebind constructor: only works if type/unit match
+    template<class T2, auto Unit2>
+    Parameter(const ParameterBase<T2, Unit2>& other)
+        requires (std::is_same_v<T2, T> && (Unit2 == Unit))
+        : Base(other) {}
 };
 
 
