@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "parameter_defs1.h"
+#include "parameter.h"
 #include <Eigen/Dense>
 #include <mp-units/systems/si.h>
 #include <iostream>

@@ -1,13 +1,13 @@
-// primitive_operators.h
-// This file defines operators for primitive types, such as int, bool, double, Eigen::Vector3d, etc.
+// tags.h
+// This file defines tags for categories for primitive types.
 // Author: Chenguang Zhao
 // Date: 2025-08-29
 
 #pragma once
 #include <string>
 #include <utility> 
-#include <Eigen/Dense>
 #include <cmath>
+#include <Eigen/Dense>
 #include <boost/mp11/list.hpp>
 #include <boost/mp11/algorithm.hpp>
 #include <type_traits>

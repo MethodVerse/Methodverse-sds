@@ -3,8 +3,7 @@
 #include <type_traits>
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
-//#include "primitive_operators.h"
-#include "primitive_operators_add.h"
+#include "operation_policy.h"
 #include <gtest/gtest.h>
 
 using namespace mv;
