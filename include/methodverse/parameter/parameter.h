@@ -16,10 +16,12 @@
 #include <concepts>
 #include <Eigen/Dense>
 #include <limits>
+// #define MP_UNITS_USE_FMTLIB 1
 #include <mp-units/core.h>
 #include <mp-units/systems/si.h>
-#include "operation_policy.h"
-#define MP_UNITS_USE_FMTLIB 1
+#include <methodverse/parameter/operation_policy.h>
+
+
 
 using namespace mp_units;
 inline constexpr double eps = std::numeric_limits<double>::epsilon();

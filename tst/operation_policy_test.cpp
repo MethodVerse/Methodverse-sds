@@ -3,8 +3,9 @@
 #include <type_traits>
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
-#include "operation_policy.h"
 #include <gtest/gtest.h>
+#include <methodverse/parameter/operation_policy.h>
+#include <methodverse/parameter/parameter.h>
 
 using namespace mv;
 
