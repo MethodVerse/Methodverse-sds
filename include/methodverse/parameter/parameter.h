@@ -1,3 +1,8 @@
+// parameter.h
+// This file defines ParameterBase and Parameter classes.
+// Author: Chenguang Zhao
+// Date: 2025-08-29
+
 #pragma once
 
 #include <iostream>
@@ -16,18 +21,15 @@
 #include <concepts>
 #include <Eigen/Dense>
 #include <limits>
-// #define MP_UNITS_USE_FMTLIB 1
 #include <mp-units/core.h>
 #include <mp-units/systems/si.h>
-#include <methodverse/parameter/operation_policy.h>
-
-
+#include "operation_policy.h"
 
 using namespace mp_units;
 inline constexpr double eps = std::numeric_limits<double>::epsilon();
 template<class> inline constexpr bool always_false_v = false;
 
-namespace mv
+namespace methodverse::parameter
 {
 
  // ======== IParameter base interface ========

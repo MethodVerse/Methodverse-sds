@@ -1,9 +1,19 @@
-// primitive_operators_add.h
-// This file defines operators for primitive types, such as int, bool, double, Eigen::Vector3d, etc.
+// oeraation_policy.h
+// This file defines operator policies for categories. following policies are defined:
+// addition (+): scalar+scalar, scalar+eigen, string+string, etc
+// subtraction (-): scalar-scalar, scalar-eigen, etc
+// multiplication (*): scala*scalar, scalar*eigen, etc
+// division (/): scalar/scalar, scalar/eigen, eigen/scalar, eigen/eigen, etc
+// corss product (x): eigen x eigen (only for eigen_colvec_tag, eigen_rowvec_tag)
+// dot product (.): eigen . eigen (only for eigen_colvec_tag, eigen_rowvec_tag)
+// transpose (.T): eigen only
+// inverse (.inv()): eigen_mat_tag only
+// boolean ops (&&, ||, !, xor, xnor): bool only
 // Author: Chenguang Zhao
 // Date: 2025-08-29
 
 #pragma once
+
 #include <string>
 #include <utility> 
 #include <cmath>
@@ -11,7 +21,7 @@
 #include <concepts> 
 #include "tags.h"
 
-namespace mv {
+namespace methodverse::parameter {
 
     ////////////////////////// addition operator + //////////////////////////
     // ---- scalar + scalar - > scalar
@@ -611,4 +621,4 @@ namespace mv {
         static_assert(op_allowed<policy, value_type_lhs, value_type_rhs, value_type_ret>, \
                     "Operation not allowed in " OP_NAME);                                 \
         static_assert(unit_policy == unit_ret, "Unit mismatch in " OP_NAME)
-}; // namespace mv
+}; // namespace methodverse::parameter

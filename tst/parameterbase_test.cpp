@@ -7,7 +7,7 @@
 #include <methodverse/parameter/parameter.h>
 // #define MP_UNITS_USE_FMTLIB 1
 
-using namespace mv;
+using namespace methodverse::parameter;
 using namespace mp_units;
 
 // Define factory methods to return primitive values for different parameter types

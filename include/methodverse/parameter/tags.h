@@ -1,9 +1,13 @@
 // tags.h
-// This file defines tags for categories for primitive types.
+// This file defines tags that categorize primitive types. By grouping related types under a category
+// (e.g., int and double as scalar_tag, Eigen 2D/3D vectors as eigen_colvec_tag), operator policies can
+// be defined at the category level instead of for each individual type. This reduces duplication and
+// scales better as the number of supported primitive types grows.
 // Author: Chenguang Zhao
 // Date: 2025-08-29
 
 #pragma once
+
 #include <string>
 #include <utility> 
 #include <cmath>
@@ -13,7 +17,7 @@
 #include <type_traits>
 #include <concepts> 
 
-namespace mv {
+namespace methodverse::parameter {
 
     // ---- op tags & category tags
     struct mul_op {};
@@ -83,4 +87,4 @@ namespace mv {
     // primary template, not defined
     template<class C1, class C2, class Op>
     struct op_policy { static constexpr bool enabled = false; };
-}; // namespace mv
+}; // namespace methodverse::parameter

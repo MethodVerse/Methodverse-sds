@@ -7,7 +7,7 @@
 #include <methodverse/parameter/operation_policy.h>
 #include <methodverse/parameter/parameter.h>
 
-using namespace mv;
+using namespace methodverse::parameter;
 
 // scalar + scalar
 TEST(OpPolicyAdd, ScalarScalar) {
