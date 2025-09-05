@@ -1,74 +1,14 @@
 #include <gtest/gtest.h>
-#include "parameter_defs1.h"
 #include <Eigen/Dense>
 #include <mp-units/systems/si.h>
 #include <iostream>
 #include <boost/mp11/list.hpp>
 #include <boost/mp11/algorithm.hpp>
+#include <methodverse/parameter/parameter.h>
+// #define MP_UNITS_USE_FMTLIB 1
 
-using namespace mv;
+using namespace methodverse::parameter;
 using namespace mp_units;
-
-//     template <auto Unit, class T>
-//     struct ParameterTest{
-//     public:
-//         static constexpr auto unit = Unit;
-//         using value_type = T;
-//         value_type value;
-//         ParameterTest() = default;
-//         ParameterTest(const value_type& v) : value(v) {}
-
-//         template <class ResultT, auto OtherUnit, class OtherT>
-//         auto multiply(const ParameterTest<OtherUnit, OtherT>& other) const {
-//             return ParameterTest<unit * other.unit, ResultT>{value * other.value};
-//         }
-
-//         template <class ResultT, auto OtherUnit, class OtherT>
-//         auto divide(const ParameterTest<OtherUnit, OtherT>& other) const {
-//             return ParameterTest<unit / other.unit, ResultT>{value / other.value};
-//         }
-//     };
-
-// // Example: Length parameter in metres with double
-// using LengthParam = ParameterTest<si::metre, double>;
-// using TimeParam   = ParameterTest<si::second, int>;
-
-// TEST(ParameterTest, UnitIsSetCorrectly) {
-//     // Check that the static unit matches what we passed in
-//     EXPECT_TRUE((std::same_as<decltype(LengthParam::unit), decltype(mp_units::si::metre)>));
-//     EXPECT_TRUE((std::same_as<decltype(TimeParam::unit), decltype(mp_units::si::second)>));
-
-//     LengthParam lp(2.0);
-//     TimeParam tp(3);
-//     auto result_multiply = lp.multiply<double>(tp); // result should be of type ParameterTest<si::metre*si::second, double>
-//     auto result_divide = lp.divide<double>(tp);     // result should be of type ParameterTest<si::metre/si::second, double>
-//     std::cout << "Mul Result: " << result_multiply.value << " " << result_multiply.unit << std::endl;
-//     std::cout << "Div Result: " << result_divide.value << " " << result_divide.unit << std::endl;
-// }
-
-// TEST(ParameterTest, ValueTypeIsSetCorrectly) {
-//     // Check that the value_type alias matches what we passed in
-//     EXPECT_TRUE((std::is_same_v<LengthParam::value_type, double>));
-//     EXPECT_TRUE((std::is_same_v<TimeParam::value_type, int>));
-// }
-
-// struct Par1 : ParameterBase<int, Par1, si::metre> { using ParameterBase::ParameterBase; };
-
-
-
-// Define a dummy parameter class for testing
-template<class T, auto U>
-struct Param : public ParameterBase<T, Param<T,U>, U> {
-    using ParameterBase<T, Param<T,U>, U>::ParameterBase;
-    static constexpr std::string_view name = "Param";
-};
-
-// Helpper to convert a value to type, because 
-template<auto U>
-using UnitC = std::integral_constant<decltype(U), U>;
-
-using Ts    = boost::mp11::mp_list<double, int, bool, std::string, Eigen::Vector3d, Eigen::Matrix3d, Eigen::Quaterniond>;
-using Units = boost::mp11::mp_list<UnitC<si::metre>, UnitC<si::second>, UnitC<si::tesla>>;
 
 // Define factory methods to return primitive values for different parameter types
 // Coveats: we have to define methods for all possible primitie types used in the tests, in Ts;
@@ -95,6 +35,32 @@ template<> inline std::vector<Eigen::Matrix3d> make<Eigen::Matrix3d>() {
 template<> inline std::vector<Eigen::Quaterniond> make<Eigen::Quaterniond>()  { 
     return std::vector{Eigen::Quaterniond(1, 0, 0, 0), Eigen::Quaterniond(2, 0, 0, 0), Eigen::Quaterniond(3, 0, 0, 0)}; 
 }
+
+// Define a dummy parameter class for testing
+template<class T, class Derived, auto U>
+struct ParamCRTP : public ParameterBase<T, U> {
+    using ParameterBase<T, U>::ParameterBase;
+    static constexpr const char* name = "ParamCRTP";
+};
+
+template<class T, auto U>
+class Param: public ParamCRTP<T, Param<T, U>, U> {
+public:
+    using Base = ParamCRTP<T, Param<T,U>, U>;
+    using Base::Base;
+    static constexpr const char* name = "Param";
+    std::string Name() const override {
+        return name;
+    }
+};
+
+// Helpper to convert a value to type 
+template<auto U>
+using UnitC = std::integral_constant<decltype(U), U>;
+
+// Define the types and units to be tested, and the resulting Param<T,U> types
+using Ts    = boost::mp11::mp_list<double, int, bool, std::string, Eigen::Vector3d, Eigen::Matrix3d, Eigen::Quaterniond>;
+using Units = boost::mp11::mp_list<UnitC<si::metre>, UnitC<si::second>, UnitC<si::tesla>>;
 
 template<class T, class U>
 using MakeParam = Param<T, U::value>;
@@ -312,4 +278,31 @@ TYPED_TEST(ParameterBaseTypedTest, EqualityOperator) {
     Param<T, U> p1(primitive_values);
 
     EXPECT_EQ(pe, p1);
+}
+
+
+TEST(OpPolicyAdd, ScalarScalar) {
+    Param<double, si::metre> p1(2.0);
+    Param<double, si::metre> p2(3.5);
+    auto r = p1 + p2;
+    EXPECT_DOUBLE_EQ(r.Val(), 5.5);
+    static_assert(std::is_same_v<decltype(r), ParameterBase<double, si::metre>>);
+}
+
+TEST(OpPolicyMul, ScalarScalarResultantValuAndUnitCorrect) {
+    constexpr auto Hz_per_T = si::hertz / si::tesla;
+    constexpr auto T_per_m = si::tesla / si::metre;
+    
+    Param<double, Hz_per_T> gamma(42.577478461e6);
+    Param<double, T_per_m> grad_str(10.0);
+    Param<double, si::second> dt(0.001);
+
+    auto gamma_grad = gamma * grad_str; // should be of unit hertz/metre
+    //EXPECT_DOUBLE_EQ(gamma_grad.Val(), 425774.78461);
+    auto r = gamma * grad_str * dt; // should be of unit hertz/metre * tesla/metre * second = hertz/metre
+    EXPECT_DOUBLE_EQ(r.Val(), 425774.78461);
+    //using ExpectedType = ParameterBase<double, si::hertz / si::metre / si::second>;
+    static_assert(si::hertz / si::metre * si::second == decltype(r)::GetUnit(), "Unit should be hertz/metre/second");
+    std::cout << "r unit: " << decltype(r)::GetUnit() << "\n";
+
 }

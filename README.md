@@ -103,10 +103,13 @@ CMakePresets.json            # Preset definitions for build configurations
 - VS Code with CMake Tools & C++ extensions
 
 ## Third parties
-
+### For development
 - mp-units
 - google test
+### For documentation 
 - PlantUML (jebbs)
+- Markdown
+- Mermaid (Markdown Preview Mermaid Support VS Code extension)
 
 ---
 Android builds are supported, and macOS support is planned for future updates. Android platform is currently tested via android emulator in linux runners through GitHub Actions, rather than the local development environment.

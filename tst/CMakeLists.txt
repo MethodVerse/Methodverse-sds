@@ -8,17 +8,12 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
-add_executable(parameter_test parameter_test.cpp ../src/parameter.cpp)
-target_include_directories(parameter_test PRIVATE ${CMAKE_SOURCE_DIR}/include ${eigen_SOURCE_DIR})
-target_link_libraries(parameter_test gtest_main)
-add_test(NAME parameter_test COMMAND parameter_test)
-
-add_executable(parameter_defs_test parameter_defs_test.cpp)
-target_include_directories(parameter_defs_test PRIVATE ${CMAKE_SOURCE_DIR}/include ${eigen_SOURCE_DIR})
-target_link_libraries(parameter_defs_test gtest_main)
-add_test(NAME parameter_defs_test COMMAND parameter_defs_test)
-
 add_executable(parameterbase_test parameterbase_test.cpp)
 target_include_directories(parameterbase_test PRIVATE ${CMAKE_SOURCE_DIR}/include ${eigen_SOURCE_DIR} ${MP_UNITS_INCLUDE_DIR} ${boost_mp11_SOURCE_DIR}/include)
-target_link_libraries(parameterbase_test gtest_main fmt::fmt)
+target_link_libraries(parameterbase_test gtest_main methodverse-parameter)
 add_test(NAME parameterbase_test COMMAND parameterbase_test)
+
+add_executable(operation_policy_test operation_policy_test.cpp)
+target_include_directories(operation_policy_test PRIVATE ${CMAKE_SOURCE_DIR}/include ${eigen_SOURCE_DIR} ${MP_UNITS_INCLUDE_DIR} ${boost_mp11_SOURCE_DIR}/include)
+target_link_libraries(operation_policy_test gtest_main methodverse-parameter)
+add_test(NAME operation_policy_test COMMAND operation_policy_test)
