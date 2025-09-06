@@ -17,6 +17,16 @@ auto FUNC_NAME(const T1& lhs, const T2& rhs) {                                  
     return policy::template impl<T1, T2>(lhs, rhs);                              \
 }
 
+// ---- Macro to define unary operator functions
+#define DEFINE_UNARY_FUNC(FUNC_NAME, OP_TAG)                                               \
+template<class T>                                                                          \
+requires (op_allowed<op_policy<category_t<T>, void, OP_TAG>, T>)                     \
+auto FUNC_NAME(const T& x) {                                                               \
+  using policy = op_policy<category_t<T>, void, OP_TAG>;                                   \
+  using RetT   = op_unary_return_t<policy, T>;                                             \
+  return policy::template impl<T>(x);                                                      \
+}
+
 namespace methodverse::parameter {
 
     DEFINE_BINARY_FUNC(operator+, add_op)
@@ -26,6 +36,11 @@ namespace methodverse::parameter {
 
     DEFINE_BINARY_FUNC(dot, dot_op)
     DEFINE_BINARY_FUNC(cross, cross_op)
+    DEFINE_BINARY_FUNC(coefw_mul, coefw_mul_op)
+    DEFINE_BINARY_FUNC(coefw_div, coefw_div_op)
+
+    DEFINE_UNARY_FUNC(transpose, transpose_op)
+    DEFINE_UNARY_FUNC(inverse, inverse_op)
 
 }; // namespace methodverse::parameter
 
@@ -67,6 +82,21 @@ requires (op_allowed<op_policy<category_t<T1>, category_t<T2>, OP_TAG>, T1, T2>)
     throw std::runtime_error("Unexpected vector size combination in binary operation"); \
 }
 
+#define DEFINE_VECTOR_UNARY_FUNC(FUNC_NAME, OP_TAG)                                           \
+template <class T>                                                                            \
+requires (op_allowed<op_policy<category_t<T>, void, OP_TAG>, T>)                              \
+auto FUNC_NAME(const std::vector<T>& a) {                                                     \
+    using policy = op_policy<category_t<T>, void, OP_TAG>;                                    \
+    using RetT   = op_return_t<policy, T>;                                                    \
+                                                                                              \
+    std::vector<RetT> result;                                                                 \
+    result.reserve(a.size());                                                                 \
+    for (const auto& v : a) {                                                                 \
+        result.push_back(policy::template impl<T>(v));                                        \
+    }                                                                                         \
+    return result;                                                                            \
+}
+
 namespace methodverse::parameter {
 
     DEFINE_VECTOR_BINARY_FUNC(operator+, add_op)
@@ -76,6 +106,12 @@ namespace methodverse::parameter {
 
     DEFINE_VECTOR_BINARY_FUNC(dot, dot_op)
     DEFINE_VECTOR_BINARY_FUNC(cross, cross_op)
+
+    DEFINE_VECTOR_BINARY_FUNC(coefw_mul, coefw_mul_op)
+    DEFINE_VECTOR_BINARY_FUNC(coefw_div, coefw_div_op)
+
+    DEFINE_VECTOR_UNARY_FUNC(transpose, transpose_op)
+    DEFINE_VECTOR_UNARY_FUNC(inverse, inverse_op)
 
 }; // namespace methodverse::parameter
 

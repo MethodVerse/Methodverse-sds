@@ -5,7 +5,6 @@
 #include <Eigen/Geometry>
 #include <gtest/gtest.h>
 #include <methodverse/parameter/operation_policy.h>
-#include <methodverse/parameter/parameter.h>
 
 using namespace methodverse::parameter;
 

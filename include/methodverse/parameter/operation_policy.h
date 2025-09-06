@@ -580,9 +580,10 @@ namespace methodverse::parameter {
     };
 
     // ---- return type deduction helper
-    template <class Policy, class U1, class U2, class = void>
+    template <class Policy, class U1, class U2 = void, class = void>
     struct op_return_type { static_assert(always_false<Policy>, "Policy does not define impl<U1,U2>");};
 
+    // return type traits for binary operation
     template <class Policy, class U1, class U2>
     struct op_return_type<Policy, U1, U2,
                           std::void_t<decltype(Policy::template impl<U1, U2>(
@@ -590,10 +591,18 @@ namespace methodverse::parameter {
         using type = decltype(Policy::template impl<U1, U2>(std::declval<U1>(), std::declval<U2>()));
     };
 
-    template <class Policy, class U1, class U2>
+    // return type traits for unary operation
+    template <class Policy, class U1>
+    struct op_return_type<Policy, U1, void,
+                          std::void_t<decltype(Policy::template impl<U1>(
+                              std::declval<U1>()))>> {
+        using type = decltype(Policy::template impl<U1>(std::declval<U1>()));
+    };
+
+    template <class Policy, class U1, class U2 = void>
     using op_return_t = typename op_return_type<Policy, U1, U2>::type;
 
-    template <class Policy, class U1, class U2, class UR = op_return_t<Policy, U1, U2>>
+    template <class Policy, class U1, class U2 = void, class UR = op_return_t<Policy, U1, U2>>
     concept op_allowed = Policy::enabled && std::is_same_v<UR, op_return_t<Policy, U1, U2>>;
 
     // ---- parameter precheck macro
