@@ -48,3 +48,11 @@ TEST(OpPolicyDiv, VectorScalar) {
     EXPECT_EQ(r, Eigen::Vector3d(1,2,3));
 }
 
+// matrix add
+TEST(OpPolicyAdd, MatMat) {
+    Eigen::Matrix3d m1 = (Eigen::Matrix3d() << 1, 2, 3, 4, 5, 6, 7, 8, 9).finished();
+    Eigen::Matrix3d m2 = (Eigen::Matrix3d() << 9, 8, 7, 6, 5, 4, 3, 2, 1).finished();
+    Eigen::Matrix3d ex = (Eigen::Matrix3d() << 10, 10, 10, 10, 10, 10, 10, 10, 10).finished();
+    Eigen::Matrix3d r = op_policy<eigen_mat_tag,eigen_mat_tag,add_op>::impl(m1, m2);
+    EXPECT_EQ(ex, r);
+}

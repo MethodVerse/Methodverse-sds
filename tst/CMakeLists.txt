@@ -17,3 +17,8 @@ add_executable(operation_policy_test operation_policy_test.cpp)
 target_include_directories(operation_policy_test PRIVATE ${CMAKE_SOURCE_DIR}/include ${eigen_SOURCE_DIR} ${MP_UNITS_INCLUDE_DIR} ${boost_mp11_SOURCE_DIR}/include)
 target_link_libraries(operation_policy_test gtest_main methodverse-parameter)
 add_test(NAME operation_policy_test COMMAND operation_policy_test)
+
+add_executable(operator_add_test operator_add_test.cpp)
+target_include_directories(operator_add_test PRIVATE ${CMAKE_SOURCE_DIR}/include ${eigen_SOURCE_DIR} ${MP_UNITS_INCLUDE_DIR} ${boost_mp11_SOURCE_DIR}/include)
+target_link_libraries(operator_add_test gtest_main methodverse-parameter)
+add_test(NAME operator_add_test COMMAND operator_add_test)

@@ -19,6 +19,7 @@
 #include <cmath>
 #include <type_traits>
 #include <concepts> 
+#include <iostream>
 #include "tags.h"
 
 namespace methodverse::parameter {
@@ -51,8 +52,7 @@ namespace methodverse::parameter {
         // Implementation body as templated free/static functions
         template <class U1, class U2>
         requires (is_category_of<U1, scalar_tag> && std::is_base_of_v<eigen_vecmat_tag, category_t<U2>>)
-        static U2 impl(U1 const &s, U2 const &vm) { return (static_cast<double>(s) + vm.array()).eval(); }
-
+        static U2 impl(U1 const &s, U2 const &vm) { return (static_cast<double>(s) + vm.array()).eval();}
         // Units of two parameters must be the same for addition operation
         template <auto Ux, auto Uy>
         requires ( Ux == Uy ) // units must be the same
@@ -88,7 +88,7 @@ namespace methodverse::parameter {
         // Implementation body as templated free/static functions
         template <class U1, class U2>
         requires (std::is_base_of_v<eigen_vecmat_tag, category_t<U1>> && std::is_base_of_v<eigen_vecmat_tag, category_t<U2>> && std::is_same_v<U1, U2>)
-        static auto impl(U1 const &vm1, U2 const &vm2) { return (vm1.array() + vm2.array()).eval(); }
+        static U1 impl(U1 const &vm1, U2 const &vm2) { return (vm1.array() + vm2.array()).eval(); }
         // Units of two parameters must be the same for addition operation
         template <auto Ux, auto Uy>
         requires ( Ux == Uy ) // units must be the same
@@ -581,7 +581,7 @@ namespace methodverse::parameter {
 
     // ---- return type deduction helper
     template <class Policy, class U1, class U2 = void, class = void>
-    struct op_return_type { static_assert(always_false<Policy>, "Policy does not define impl<U1,U2>");};
+    struct op_return_type { using type = void; };
 
     // return type traits for binary operation
     template <class Policy, class U1, class U2>
@@ -603,7 +603,7 @@ namespace methodverse::parameter {
     using op_return_t = typename op_return_type<Policy, U1, U2>::type;
 
     template <class Policy, class U1, class U2 = void, class UR = op_return_t<Policy, U1, U2>>
-    concept op_allowed = Policy::enabled && std::is_same_v<UR, op_return_t<Policy, U1, U2>>;
+    concept op_allowed = Policy::enabled && !std::is_void_v<op_return_t<Policy, U1, U2>>;
 
     // ---- parameter precheck macro
     // This macro is to be used inside operator overload functions to do static checks on parameters and return type

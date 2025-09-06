@@ -48,7 +48,7 @@ namespace methodverse::parameter {
     struct eigen_quat_tag { using types = boost::mp11::mp_list<Eigen::Quaterniond>;};
     struct eigen_colvec_tag : public eigen_vec_tag { using types = boost::mp11::mp_list<Eigen::Vector3d>;};    // all column vectors
     struct eigen_rowvec_tag : public eigen_vec_tag { using types = boost::mp11::mp_list<Eigen::RowVector3d>;}; // all row vectors
-    struct eigen_mat_tag { using types = boost::mp11::mp_list<Eigen::Matrix3d>;};       // all matrices
+    struct eigen_mat_tag : public eigen_vecmat_tag { using types = boost::mp11::mp_list<Eigen::Matrix3d>;};       // all matrices
 
     template<class T, class Tag> 
     concept is_category_of = boost::mp11::mp_contains<typename Tag::types, T>::value;

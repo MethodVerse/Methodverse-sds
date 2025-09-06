@@ -23,7 +23,7 @@ template<class T>                                                               
 requires (op_allowed<op_policy<category_t<T>, void, OP_TAG>, T>)                     \
 auto FUNC_NAME(const T& x) {                                                               \
   using policy = op_policy<category_t<T>, void, OP_TAG>;                                   \
-  using RetT   = op_unary_return_t<policy, T>;                                             \
+  using RetT   = op_return_t<policy, T>;                                             \
   return policy::template impl<T>(x);                                                      \
 }
 
