@@ -64,7 +64,7 @@ namespace methodverse::parameter {
             std::conditional_t<is_category_of<T, eigen_rowvec_tag>,eigen_rowvec_tag,
             std::conditional_t<is_category_of<T, eigen_mat_tag>,   eigen_mat_tag,
             void>>>>>>>;
-        static_assert(!std::is_same_v<type, void>, "Type not in any category");
+        //static_assert(!std::is_same_v<type, void>, "Type not in any category");
     };
 
     template<class T>

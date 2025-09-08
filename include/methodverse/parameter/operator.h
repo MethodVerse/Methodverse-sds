@@ -43,9 +43,6 @@ namespace methodverse::parameter {
     DEFINE_UNARY_FUNC(transpose, transpose_op)
     DEFINE_UNARY_FUNC(inverse, inverse_op)
 
-    // helpers
-    template<class T1, class T2> auto scalar_add_op(const T1& lhs, const T2& rhs) { return lhs + rhs; }
-
 }; // namespace methodverse::parameter
 
 #define DEFINE_VECTOR_BINARY_FUNC(FUNC_NAME, OP_TAG)                          \
@@ -116,6 +113,23 @@ namespace methodverse::parameter {
 
     DEFINE_VECTOR_UNARY_FUNC(transpose, transpose_op)
     DEFINE_VECTOR_UNARY_FUNC(inverse, inverse_op)
+
+    // helpers, to avoid recursive call of the macro itself for ParameterBase operators
+    template<class T1, class T2, class A1, class A2> auto array_add_op(const std::vector<T1, A1>& lhs, const std::vector<T2, A2>& rhs) { return lhs + rhs; }
+    template<class T1, class T2, class A1, class A2> auto array_sub_op(const std::vector<T1, A1>& lhs, const std::vector<T2, A2>& rhs) { return lhs - rhs; }
+    template<class T1, class T2, class A1, class A2> auto array_mul_op(const std::vector<T1, A1>& lhs, const std::vector<T2, A2>& rhs) { return lhs * rhs; }
+    template<class T1, class T2, class A1, class A2> auto array_div_op(const std::vector<T1, A1>& lhs, const std::vector<T2, A2>& rhs) { return lhs / rhs; }
+    
+    template<class T1, class T2, class A1, class A2> auto array_dot_op(const std::vector<T1, A1>& lhs, const std::vector<T2, A2>& rhs) { return dot(lhs, rhs); }
+    template<class T1, class T2, class A1, class A2> auto array_cross_op(const std::vector<T1, A1>& lhs, const std::vector<T2, A2>& rhs) { return cross(lhs, rhs); }
+    
+    template<class T1, class T2, class A1, class A2> auto array_coefw_mul_op(const std::vector<T1, A1>& lhs, const std::vector<T2, A2>& rhs) { return coefw_mul(lhs, rhs); }
+    template<class T1, class T2, class A1, class A2> auto array_coefw_div_op(const std::vector<T1, A1>& lhs, const std::vector<T2, A2>& rhs) { return coefw_div(lhs, rhs); }
+    
+    template<class T1, class A1> auto array_transpose_op(const std::vector<T1, A1>& lhs) { return transpose(lhs); }
+    template<class T1, class A1> auto array_inverse_op(const std::vector<T1, A1>& lhs) { return inverse(lhs); }
+    
+
 
 }; // namespace methodverse::parameter
 

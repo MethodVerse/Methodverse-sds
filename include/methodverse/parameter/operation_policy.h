@@ -120,6 +120,11 @@ namespace methodverse::parameter {
         template <class U1, class U2>
         requires (std::is_same_v<U1, std::string> && std::is_same_v<U2, std::string>)
         static std::string impl(U1 const &s1, U2 const &s2) { return s1 + s2; }
+        
+        template <auto Ux, auto Uy>
+        requires ( Ux == Uy ) // units must be the same
+        static consteval auto unit_of() { return Ux; }
+
     };
 
     ////////////////////////// subtraction operator - //////////////////////////
