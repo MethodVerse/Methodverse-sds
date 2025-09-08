@@ -10,7 +10,8 @@
 // ---- Macro to define binary operator functions
 #define DEFINE_BINARY_FUNC(FUNC_NAME, OP_TAG)                                    \
 template<class T1, class T2>                                                     \
-requires (op_allowed<op_policy<category_t<T1>, category_t<T2>, OP_TAG>, T1, T2>) \
+requires (!is_std_vector_v<T1> && !is_std_vector_v<T2> &&                        \
+          op_allowed<op_policy<category_t<T1>, category_t<T2>, OP_TAG>, T1, T2>) \
 auto FUNC_NAME(const T1& lhs, const T2& rhs) {                                   \
     using policy = op_policy<category_t<T1>, category_t<T2>, OP_TAG>;            \
     using T3 = op_return_t<policy, T1, T2>;                                      \
@@ -42,11 +43,14 @@ namespace methodverse::parameter {
     DEFINE_UNARY_FUNC(transpose, transpose_op)
     DEFINE_UNARY_FUNC(inverse, inverse_op)
 
+    // helpers
+    template<class T1, class T2> auto scalar_add_op(const T1& lhs, const T2& rhs) { return lhs + rhs; }
+
 }; // namespace methodverse::parameter
 
 #define DEFINE_VECTOR_BINARY_FUNC(FUNC_NAME, OP_TAG)                          \
-template <class T1, class T2>                                                 \
-auto FUNC_NAME(const std::vector<T1>& lhs, const std::vector<T2>& rhs)        \
+template <class T1, class T2, class A1, class A2>                                                 \
+auto FUNC_NAME(const std::vector<T1,A1>& lhs, const std::vector<T2,A2>& rhs)        \
 requires (op_allowed<op_policy<category_t<T1>, category_t<T2>, OP_TAG>, T1, T2>) \
 {                                                                             \
     using policy = op_policy<category_t<T1>, category_t<T2>, OP_TAG>;         \
@@ -61,21 +65,21 @@ requires (op_allowed<op_policy<category_t<T1>, category_t<T2>, OP_TAG>, T1, T2>)
     if (lhs.size() == 1 && rhs.size() > 1) {                                  \
         std::vector<T3> result(rhs.size());                                   \
         std::transform(rhs.begin(), rhs.end(), result.begin(),                \
-                       [&lhs](const T2& v) { return FUNC_NAME(lhs[0], v); }); \
+                       [&lhs](const T2& v) { return policy::template impl<T1,T2>(lhs[0], v); }); \
         return result;                                                        \
     }                                                                         \
                                                                               \
     if (lhs.size() > 1 && rhs.size() == 1) {                                  \
         std::vector<T3> result(lhs.size());                                   \
         std::transform(lhs.begin(), lhs.end(), result.begin(),                \
-                       [&rhs](const T1& v) { return FUNC_NAME(v, rhs[0]); }); \
+                       [&rhs](const T1& v) { return policy::template impl<T1,T2>(v, rhs[0]); }); \
         return result;                                                        \
     }                                                                         \
                                                                               \
     if (lhs.size() == rhs.size()) {                                           \
         std::vector<T3> result(lhs.size());                                   \
         std::transform(lhs.begin(), lhs.end(), rhs.begin(), result.begin(),   \
-                       [](const T1& v1, const T2& v2) { return FUNC_NAME(v1, v2); }); \
+                       [](const T1& v1, const T2& v2) { return policy::template impl<T1,T2>(v1, v2); }); \
         return result;                                                        \
     }                                                                         \
                                                                               \

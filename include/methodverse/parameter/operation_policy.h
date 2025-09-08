@@ -182,7 +182,7 @@ namespace methodverse::parameter {
         // Implementation body as templated free/static functions
         template <class U1, class U2>
         requires (std::is_base_of_v<eigen_vecmat_tag, category_t<U1>> && std::is_base_of_v<eigen_vecmat_tag, category_t<U2>> && std::is_same_v<U1, U2>)
-        static auto impl(U1 const &vm1, U2 const &vm2) { return (vm1.array() - vm2.array()).eval(); }
+        static U1 impl(U1 const &vm1, U2 const &vm2) { return (vm1.array() - vm2.array()).eval(); }
         // Units of two parameters must be the same for addition operation
         template <auto Ux, auto Uy>
         requires ( Ux == Uy ) // units must be the same
@@ -339,7 +339,10 @@ namespace methodverse::parameter {
         // Implementation body as templated free/static functions
         template <class U1, class U2>
         requires (is_category_of<U1, scalar_tag> && is_category_of<U2, scalar_tag>)
-        static double impl(U1 const &s1, U2 const &s2) { return static_cast<double>(s1) / static_cast<double>(s2); }
+        static std::common_type_t<U1,U2> impl(U1 const &s1, U2 const &s2) { 
+            using C = std::common_type_t<U1,U2>;
+            return static_cast<C>(s1) / static_cast<C>(s2); 
+        }
 
         template <auto Ux, auto Uy>
         static consteval auto unit_of() { return Ux / Uy; }
@@ -605,29 +608,34 @@ namespace methodverse::parameter {
     template <class Policy, class U1, class U2 = void, class UR = op_return_t<Policy, U1, U2>>
     concept op_allowed = Policy::enabled && !std::is_void_v<op_return_t<Policy, U1, U2>>;
 
-    // ---- parameter precheck macro
-    // This macro is to be used inside operator overload functions to do static checks on parameters and return type
-    // OP_TAG: the operation tag, e.g. add_op
-    // OP_NAME: the operation name in string, e.g. "operator+" for error messages
-    #define PARAMETER_BINARY_PRECHECK(OP_TAG, OP_NAME)                                    \
-        using category_lhs = typename category<T>::type;                                  \
-        using category_rhs = typename category<typename D2::value_type>::type;            \
-        using value_type_lhs = T;                                                         \
-        using value_type_rhs = typename D2::value_type;                                   \
-        using value_type_ret = typename DR::value_type;                                   \
-                                                                                          \
-        using policy = op_policy<category_lhs, category_rhs, OP_TAG>;                     \
-        using return_type_policy = op_return_t<policy, value_type_lhs, value_type_rhs>;   \
-                                                                                          \
-        constexpr auto unit_lhs = Base::GetUnit();                                        \
-        constexpr auto unit_rhs = D2::GetUnit();                                          \
-        constexpr auto unit_policy = policy::template unit_of<unit_lhs, unit_rhs>();      \
-        constexpr auto unit_ret = DR::GetUnit();                                          \
-                                                                                          \
-        static_assert(std::is_same_v<return_type_policy, value_type_ret>,                 \
-                    "Return type mismatch in " OP_NAME);                                  \
-        static_assert(policy::enabled, "Operation not enabled in " OP_NAME);              \
-        static_assert(op_allowed<policy, value_type_lhs, value_type_rhs, value_type_ret>, \
-                    "Operation not allowed in " OP_NAME);                                 \
-        static_assert(unit_policy == unit_ret, "Unit mismatch in " OP_NAME)
+    // This is used to prevent the compiler from applying generic operators (+ - * /) to std::vector<T>
+    template<class T> struct is_std_vector : std::false_type {}; 
+    template<class T, class A> struct is_std_vector<std::vector<T,A>> : std::true_type {}; 
+    template<class T> inline constexpr bool is_std_vector_v = is_std_vector<T>::value;
+
+    // // ---- parameter precheck macro
+    // // This macro is to be used inside operator overload functions to do static checks on parameters and return type
+    // // OP_TAG: the operation tag, e.g. add_op
+    // // OP_NAME: the operation name in string, e.g. "operator+" for error messages
+    // #define PARAMETER_BINARY_PRECHECK(OP_TAG, OP_NAME)                                    \
+    //     using category_lhs = typename category<T>::type;                                  \
+    //     using category_rhs = typename category<typename D2::value_type>::type;            \
+    //     using value_type_lhs = T;                                                         \
+    //     using value_type_rhs = typename D2::value_type;                                   \
+    //     using value_type_ret = typename DR::value_type;                                   \
+    //                                                                                       \
+    //     using policy = op_policy<category_lhs, category_rhs, OP_TAG>;                     \
+    //     using return_type_policy = op_return_t<policy, value_type_lhs, value_type_rhs>;   \
+    //                                                                                       \
+    //     constexpr auto unit_lhs = Base::GetUnit();                                        \
+    //     constexpr auto unit_rhs = D2::GetUnit();                                          \
+    //     constexpr auto unit_policy = policy::template unit_of<unit_lhs, unit_rhs>();      \
+    //     constexpr auto unit_ret = DR::GetUnit();                                          \
+    //                                                                                       \
+    //     static_assert(std::is_same_v<return_type_policy, value_type_ret>,                 \
+    //                 "Return type mismatch in " OP_NAME);                                  \
+    //     static_assert(policy::enabled, "Operation not enabled in " OP_NAME);              \
+    //     static_assert(op_allowed<policy, value_type_lhs, value_type_rhs, value_type_ret>, \
+    //                 "Operation not allowed in " OP_NAME);                                 \
+    //     static_assert(unit_policy == unit_ret, "Unit mismatch in " OP_NAME)
 }; // namespace methodverse::parameter
