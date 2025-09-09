@@ -10,26 +10,22 @@
 #include "parameterbase.h"
 
 #define DEFINE_PARAMETER_BINARY_FUNC(FUNC_NAME, OP_TAG)                                       \
-template <ParameterLike L, ParameterLike R>   \
-auto FUNC_NAME (const L& lhs, const R& rhs) \
-requires requires (const L& lhs, const R& rhs) {                                              \
+template <class T1, class T2, mp_units::Reference auto U1, mp_units::Reference auto U2>   \
+auto FUNC_NAME (const ParameterBase<T1, U1>& lhs, const ParameterBase<T2, U2>& rhs) \
+requires requires (const T1& lhs, const T2& rhs) {                                              \
   /* require that the policy impl for these value types is well-formed */                     \
   op_policy<                                                                              \
-      category_t<typename L::value_type>,                                                 \
-      category_t<typename R::value_type>,                                                 \
+      category_t<T1>,                                                 \
+      category_t<T2>,                                                 \
       OP_TAG                                                                                  \
-  >::template impl<typename L::value_type, typename R::value_type>(lhs.Val(), rhs.Val());     \
+  >::template impl<T1, T2>(lhs, rhs);     \
 }                                                                                             \
 {                                                 \
-  using TL = typename L::value_type;                                                          \
-  using TR = typename R::value_type;                                                          \
-  using Policy = op_policy<category_t<TL>, category_t<TR>, OP_TAG>;               \
+  using Policy = op_policy<category_t<T1>, category_t<T2>, OP_TAG>;               \
   static_assert(Policy::enabled, #FUNC_NAME " not enabled for these types");                  \
                                                                                               \
-  using RetT = op_return_t<Policy, TL, TR>;                                               \
-  constexpr auto Ux = L::GetUnit();                                                           \
-  constexpr auto Uy = R::GetUnit();                                                           \
-  constexpr auto RetU = Policy::template unit_of<Ux, Uy>();                                   \
+  using RetT = op_return_t<Policy, T1, T2>;                                               \
+  constexpr auto RetU = Policy::template unit_of<U1, U2>();                                   \
                                                                                               \
   auto v = array_##OP_TAG(lhs.Get(), rhs.Get());                                                   \
   return ParameterBase<RetT, RetU>(v);                                                    \
