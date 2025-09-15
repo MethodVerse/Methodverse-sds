@@ -1,3 +1,9 @@
+// operator_add_parameterbase_test.cpp
+// Unit tests for addition on ParameterBase objects.
+// Valid operations must compile and produce the expected results.
+// Invalid operations are rejected at compile-time (via concepts/constraints).
+// Author: Chenguang Zhao
+// Date: 2025-08-29
 #include "operator_test.h"
 #include <mp-units/systems/si.h>
 #include <boost/mp11/list.hpp>

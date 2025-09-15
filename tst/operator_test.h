@@ -1,5 +1,5 @@
 // tst/operator_test.h
-// Defines types used for primitive operator test
+// Defines helper type list and factory function for primitive operator test
 // Author: Chenguang Zhao
 // Date: 2025-09-06
 
@@ -18,7 +18,7 @@ using namespace methodverse::parameter;
 
 namespace methodverse::operatortest
 {
-    // ---------- Pair wrapper & cartesian product ----------
+    // ---------- Pair wrapper & cartesian product from primitive types ----------
     template <class L, class R, class RES>
     struct Sample
     {

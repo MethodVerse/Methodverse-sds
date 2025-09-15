@@ -1,3 +1,9 @@
+// operator_add_test.cpp
+// Unit tests for addition on primitive types and on vectors of primitive types.
+// Valid operations must compile and produce the expected results.
+// Invalid operations are rejected at compile-time (via concepts/constraints).
+// Author: Chenguang Zhao
+// Date: 2025-08-29
 #include "operator_test.h"
 
 namespace methodverse::operatortest::add {

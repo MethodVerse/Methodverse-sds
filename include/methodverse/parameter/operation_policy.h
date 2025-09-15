@@ -6,6 +6,7 @@
 // division (/): scalar/scalar, scalar/eigen, eigen/scalar, eigen/eigen, etc
 // corss product (x): eigen x eigen (only for eigen_colvec_tag, eigen_rowvec_tag)
 // dot product (.): eigen . eigen (only for eigen_colvec_tag, eigen_rowvec_tag)
+// coefficient wise multiplication: only for eigen types
 // transpose (.T): eigen only
 // inverse (.inv()): eigen_mat_tag only
 // boolean ops (&&, ||, !, xor, xnor): bool only
@@ -31,10 +32,10 @@ namespace methodverse::parameter {
         static constexpr bool enabled = true;
 
         // Implementation body as templated free/static functions        
-        template <class U1, class U2>
-        requires (is_category_of<U1, scalar_tag> && is_category_of<U2, scalar_tag>)
-        static std::common_type_t<U1,U2> impl(U1 const &s1, U2 const &s2) { 
-            using C = std::common_type_t<U1,U2>;
+        template <class T1, class T2>
+        requires (is_category_of<T1, scalar_tag> && is_category_of<T2, scalar_tag>)
+        static std::common_type_t<T1,T2> impl(T1 const &s1, T2 const &s2) { 
+            using C = std::common_type_t<T1,T2>;
             return static_cast<C>(s1) + static_cast<C>(s2); 
         }
 
@@ -50,9 +51,9 @@ namespace methodverse::parameter {
         static constexpr bool enabled = true;
 
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (is_category_of<U1, scalar_tag> && std::is_base_of_v<eigen_vecmat_tag, category_t<U2>>)
-        static U2 impl(U1 const &s, U2 const &vm) { return (static_cast<double>(s) + vm.array()).eval();}
+        template <class T1, class T2>
+        requires (is_category_of<T1, scalar_tag> && std::is_base_of_v<eigen_vecmat_tag, category_t<T2>>)
+        static T2 impl(T1 const &s, T2 const &vm) { return (static_cast<double>(s) + vm.array()).eval();}
         // Units of two parameters must be the same for addition operation
         template <auto Ux, auto Uy>
         requires ( Ux == Uy ) // units must be the same
@@ -68,9 +69,9 @@ namespace methodverse::parameter {
         static constexpr bool enabled = true;
 
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (std::is_base_of_v<eigen_vecmat_tag, category_t<U1>> && is_category_of<U2, scalar_tag>)
-        static U1 impl(U1 const &vm, U2 const &s) { return (vm.array() + static_cast<double>(s)).eval(); }
+        template <class T1, class T2>
+        requires (std::is_base_of_v<eigen_vecmat_tag, category_t<T1>> && is_category_of<T2, scalar_tag>)
+        static T1 impl(T1 const &vm, T2 const &s) { return (vm.array() + static_cast<double>(s)).eval(); }
         
         // Units of two parameters must be the same for addition operation
         template <auto Ux, auto Uy>
@@ -86,9 +87,9 @@ namespace methodverse::parameter {
     struct op_policy<eigen_vecmat_tag, eigen_vecmat_tag, add_op> {
         static constexpr bool enabled = true;
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (std::is_base_of_v<eigen_vecmat_tag, category_t<U1>> && std::is_base_of_v<eigen_vecmat_tag, category_t<U2>> && std::is_same_v<U1, U2>)
-        static U1 impl(U1 const &vm1, U2 const &vm2) { return (vm1.array() + vm2.array()).eval(); }
+        template <class T1, class T2>
+        requires (std::is_base_of_v<eigen_vecmat_tag, category_t<T1>> && std::is_base_of_v<eigen_vecmat_tag, category_t<T2>> && std::is_same_v<T1, T2>)
+        static T1 impl(T1 const &vm1, T2 const &vm2) { return (vm1.array() + vm2.array()).eval(); }
         // Units of two parameters must be the same for addition operation
         template <auto Ux, auto Uy>
         requires ( Ux == Uy ) // units must be the same
@@ -102,9 +103,9 @@ namespace methodverse::parameter {
     template<>
     struct op_policy<eigen_quat_tag, eigen_quat_tag, add_op> {
         static constexpr bool enabled = true;
-        template <class U1, class U2>
-        requires (is_category_of<U1, eigen_quat_tag> && is_category_of<U2, eigen_quat_tag>)
-        static Eigen::Quaterniond impl(U1 const &q1, U2 const &q2) { return Eigen::Quaterniond(q1.coeffs() + q2.coeffs()); }
+        template <class T1, class T2>
+        requires (is_category_of<T1, eigen_quat_tag> && is_category_of<T2, eigen_quat_tag>)
+        static Eigen::Quaterniond impl(T1 const &q1, T2 const &q2) { return Eigen::Quaterniond(q1.coeffs() + q2.coeffs()); }
 
         // Units of two parameters must be the same for addition operation
         template <auto Ux, auto Uy>
@@ -117,9 +118,9 @@ namespace methodverse::parameter {
     struct op_policy<string_tag, string_tag, add_op> {
         static constexpr bool enabled = true;
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (std::is_same_v<U1, std::string> && std::is_same_v<U2, std::string>)
-        static std::string impl(U1 const &s1, U2 const &s2) { return s1 + s2; }
+        template <class T1, class T2>
+        requires (std::is_same_v<T1, std::string> && std::is_same_v<T2, std::string>)
+        static std::string impl(T1 const &s1, T2 const &s2) { return s1 + s2; }
 
         template <auto Ux, auto Uy>
         requires ( Ux == Uy ) // units must be the same
@@ -134,9 +135,9 @@ namespace methodverse::parameter {
         static constexpr bool enabled = true;
 
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (is_category_of<U1, scalar_tag> && is_category_of<U2, scalar_tag>)
-        static std::common_type_t<U1,U2> impl(U1 const &s1, U2 const &s2) { return static_cast<double>(s1) - static_cast<double>(s2); }
+        template <class T1, class T2>
+        requires (is_category_of<T1, scalar_tag> && is_category_of<T2, scalar_tag>)
+        static std::common_type_t<T1,T2> impl(T1 const &s1, T2 const &s2) { return static_cast<double>(s1) - static_cast<double>(s2); }
 
         // Units of two parameters must be the same for addition operation
         template <auto Ux, auto Uy>
@@ -150,9 +151,9 @@ namespace methodverse::parameter {
         static constexpr bool enabled = true;
 
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (is_category_of<U1, scalar_tag> && std::is_base_of_v<eigen_vecmat_tag, category_t<U2>>)
-        static U2 impl(U1 const &s, U2 const &vm) { return (static_cast<double>(s) - vm.array()).eval(); }
+        template <class T1, class T2>
+        requires (is_category_of<T1, scalar_tag> && std::is_base_of_v<eigen_vecmat_tag, category_t<T2>>)
+        static T2 impl(T1 const &s, T2 const &vm) { return (static_cast<double>(s) - vm.array()).eval(); }
 
         // Units of two parameters must be the same for addition operation
         template <auto Ux, auto Uy>
@@ -168,9 +169,9 @@ namespace methodverse::parameter {
     struct op_policy<eigen_vecmat_tag, scalar_tag, sub_op> {
         static constexpr bool enabled = true;
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (std::is_base_of_v<eigen_vecmat_tag, category_t<U1>> && is_category_of<U2, scalar_tag>)
-        static U1 impl(U1 const &vm, U2 const &s) { return ( vm.array() - static_cast<double>(s)).eval(); }
+        template <class T1, class T2>
+        requires (std::is_base_of_v<eigen_vecmat_tag, category_t<T1>> && is_category_of<T2, scalar_tag>)
+        static T1 impl(T1 const &vm, T2 const &s) { return ( vm.array() - static_cast<double>(s)).eval(); }
         // Units of two parameters must be the same for addition operation
         template <auto Ux, auto Uy>
         requires ( Ux == Uy ) // units must be the same
@@ -185,9 +186,9 @@ namespace methodverse::parameter {
     struct op_policy<eigen_vecmat_tag, eigen_vecmat_tag, sub_op> {
         static constexpr bool enabled = true;
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (std::is_base_of_v<eigen_vecmat_tag, category_t<U1>> && std::is_base_of_v<eigen_vecmat_tag, category_t<U2>> && std::is_same_v<U1, U2>)
-        static U1 impl(U1 const &vm1, U2 const &vm2) { return (vm1.array() - vm2.array()).eval(); }
+        template <class T1, class T2>
+        requires (std::is_base_of_v<eigen_vecmat_tag, category_t<T1>> && std::is_base_of_v<eigen_vecmat_tag, category_t<T2>> && std::is_same_v<T1, T2>)
+        static T1 impl(T1 const &vm1, T2 const &vm2) { return (vm1.array() - vm2.array()).eval(); }
         // Units of two parameters must be the same for addition operation
         template <auto Ux, auto Uy>
         requires ( Ux == Uy ) // units must be the same
@@ -201,9 +202,9 @@ namespace methodverse::parameter {
     template<>
     struct op_policy<eigen_quat_tag, eigen_quat_tag, sub_op> {
         static constexpr bool enabled = true;
-        template <class U1, class U2>
-        requires (is_category_of<U1, eigen_quat_tag> && is_category_of<U2, eigen_quat_tag>)
-        static Eigen::Quaterniond impl(U1 const &q1, U2 const &q2) { return Eigen::Quaterniond(q1.coeffs() - q2.coeffs()); }
+        template <class T1, class T2>
+        requires (is_category_of<T1, eigen_quat_tag> && is_category_of<T2, eigen_quat_tag>)
+        static Eigen::Quaterniond impl(T1 const &q1, T2 const &q2) { return Eigen::Quaterniond(q1.coeffs() - q2.coeffs()); }
 
         // Units of two parameters must be the same for addition operation
         template <auto Ux, auto Uy>
@@ -219,9 +220,9 @@ namespace methodverse::parameter {
         static constexpr bool enabled = true;
 
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (is_category_of<U1, scalar_tag> && is_category_of<U2, scalar_tag>)
-        static std::common_type_t<U1,U2> impl(U1 const &s1, U2 const &s2) { return static_cast<double>(s1) * static_cast<double>(s2); }
+        template <class T1, class T2>
+        requires (is_category_of<T1, scalar_tag> && is_category_of<T2, scalar_tag>)
+        static std::common_type_t<T1,T2> impl(T1 const &s1, T2 const &s2) { return static_cast<double>(s1) * static_cast<double>(s2); }
 
         template <auto Ux, auto Uy>
         static consteval auto unit_of() { return Ux * Uy; }
@@ -233,9 +234,9 @@ namespace methodverse::parameter {
         static constexpr bool enabled = true;
 
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (is_category_of<U1, scalar_tag> && std::is_base_of_v<eigen_vecmat_tag, category_t<U2>>)
-        static U2 impl(U1 const &s, U2 const &vm) { return (static_cast<double>(s) * vm.array()).eval(); }
+        template <class T1, class T2>
+        requires (is_category_of<T1, scalar_tag> && std::is_base_of_v<eigen_vecmat_tag, category_t<T2>>)
+        static T2 impl(T1 const &s, T2 const &vm) { return (static_cast<double>(s) * vm.array()).eval(); }
 
         template <auto Ux, auto Uy>
         static consteval auto unit_of() { return Ux * Uy; }
@@ -249,9 +250,9 @@ namespace methodverse::parameter {
     struct op_policy<eigen_vecmat_tag, scalar_tag, mul_op> {
         static constexpr bool enabled = true;
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (std::is_base_of_v<eigen_vecmat_tag, category_t<U1>> && is_category_of<U2, scalar_tag>)
-        static U1 impl(U1 const &vm, U2 const &s) { return (vm.array() * static_cast<double>(s)).eval(); }
+        template <class T1, class T2>
+        requires (std::is_base_of_v<eigen_vecmat_tag, category_t<T1>> && is_category_of<T2, scalar_tag>)
+        static T1 impl(T1 const &vm, T2 const &s) { return (vm.array() * static_cast<double>(s)).eval(); }
         template <auto Ux, auto Uy>
         static consteval auto unit_of() { return Ux * Uy; } // multiplication of units
     };
@@ -264,11 +265,11 @@ namespace methodverse::parameter {
     struct op_policy<eigen_rowvec_tag, eigen_colvec_tag, mul_op> {
         static constexpr bool enabled = true;
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (is_category_of<U1, eigen_rowvec_tag> && 
-                  is_category_of<U2, eigen_colvec_tag> && 
-                  (U1::ColsAtCompileTime == U2::RowsAtCompileTime))
-        static double impl(U1 const &rv, U2 const &cv) { return (rv * cv).value(); }
+        template <class T1, class T2>
+        requires (is_category_of<T1, eigen_rowvec_tag> && 
+                  is_category_of<T2, eigen_colvec_tag> && 
+                  (T1::ColsAtCompileTime == T2::RowsAtCompileTime))
+        static double impl(T1 const &rv, T2 const &cv) { return (rv * cv).value(); }
         template <auto Ux, auto Uy>
         static consteval auto unit_of() { return Ux * Uy; } // multiplication of units
     };
@@ -278,11 +279,11 @@ namespace methodverse::parameter {
     struct op_policy<eigen_colvec_tag, eigen_rowvec_tag, mul_op> {
         static constexpr bool enabled = true;
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (is_category_of<U1, eigen_colvec_tag> && 
-                  is_category_of<U2, eigen_rowvec_tag> && 
-                  (U1::RowsAtCompileTime == U2::ColsAtCompileTime))
-        static auto impl(U1 const &cv, U2 const &rv) { return (cv * rv).eval(); }   
+        template <class T1, class T2>
+        requires (is_category_of<T1, eigen_colvec_tag> && 
+                  is_category_of<T2, eigen_rowvec_tag> && 
+                  (T1::RowsAtCompileTime == T2::ColsAtCompileTime))
+        static auto impl(T1 const &cv, T2 const &rv) { return (cv * rv).eval(); }   
         template <auto Ux, auto Uy>
         static consteval auto unit_of() { return Ux * Uy; } // multiplication of units
     };
@@ -292,9 +293,9 @@ namespace methodverse::parameter {
     struct op_policy<eigen_mat_tag, eigen_mat_tag, mul_op> {
         static constexpr bool enabled = true;
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (is_category_of<U1, eigen_mat_tag> && is_category_of<U2, eigen_mat_tag> && (U1::ColsAtCompileTime == U2::RowsAtCompileTime))
-        static auto impl(U1 const &m1, U2 const &m2) { return (m1 * m2).eval(); }
+        template <class T1, class T2>
+        requires (is_category_of<T1, eigen_mat_tag> && is_category_of<T2, eigen_mat_tag> && (T1::ColsAtCompileTime == T2::RowsAtCompileTime))
+        static auto impl(T1 const &m1, T2 const &m2) { return (m1 * m2).eval(); }
         template <auto Ux, auto Uy>
         static consteval auto unit_of() { return Ux * Uy; } // multiplication of units
     };
@@ -303,9 +304,9 @@ namespace methodverse::parameter {
     struct op_policy<eigen_mat_tag, eigen_colvec_tag, mul_op> {
         static constexpr bool enabled = true;
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (is_category_of<U1, eigen_mat_tag> && is_category_of<U2, eigen_colvec_tag> && (U1::ColsAtCompileTime == U2::RowsAtCompileTime))
-        static auto impl(U1 const &m, U2 const &cv) { return (m * cv).eval(); }
+        template <class T1, class T2>
+        requires (is_category_of<T1, eigen_mat_tag> && is_category_of<T2, eigen_colvec_tag> && (T1::ColsAtCompileTime == T2::RowsAtCompileTime))
+        static auto impl(T1 const &m, T2 const &cv) { return (m * cv).eval(); }
         template <auto Ux, auto Uy>
         static consteval auto unit_of() { return Ux * Uy; }
     };
@@ -315,9 +316,9 @@ namespace methodverse::parameter {
     struct op_policy<eigen_rowvec_tag, eigen_mat_tag, mul_op> {
         static constexpr bool enabled = true;   
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (is_category_of<U1, eigen_rowvec_tag> && is_category_of<U2, eigen_mat_tag> && (U1::ColsAtCompileTime == U2::RowsAtCompileTime))
-        static auto impl(U1 const &rv, U2 const &m) { return (rv * m).eval(); }
+        template <class T1, class T2>
+        requires (is_category_of<T1, eigen_rowvec_tag> && is_category_of<T2, eigen_mat_tag> && (T1::ColsAtCompileTime == T2::RowsAtCompileTime))
+        static auto impl(T1 const &rv, T2 const &m) { return (rv * m).eval(); }
         template <auto Ux, auto Uy>
         static consteval auto unit_of() { return Ux * Uy; }
     };
@@ -326,9 +327,9 @@ namespace methodverse::parameter {
     template<>
     struct op_policy<eigen_quat_tag, eigen_quat_tag, mul_op> {
         static constexpr bool enabled = true;
-        template <class U1, class U2>
-        requires (is_category_of<U1, eigen_quat_tag> && is_category_of<U2, eigen_quat_tag>)
-        static Eigen::Quaterniond impl(U1 const &q1, U2 const &q2) { return q1 * q2; }
+        template <class T1, class T2>
+        requires (is_category_of<T1, eigen_quat_tag> && is_category_of<T2, eigen_quat_tag>)
+        static Eigen::Quaterniond impl(T1 const &q1, T2 const &q2) { return q1 * q2; }
 
         // Units of two parameters must be the same for addition operation
         template <auto Ux, auto Uy>
@@ -342,10 +343,10 @@ namespace methodverse::parameter {
         static constexpr bool enabled = true;
 
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (is_category_of<U1, scalar_tag> && is_category_of<U2, scalar_tag>)
-        static std::common_type_t<U1,U2> impl(U1 const &s1, U2 const &s2) { 
-            using C = std::common_type_t<U1,U2>;
+        template <class T1, class T2>
+        requires (is_category_of<T1, scalar_tag> && is_category_of<T2, scalar_tag>)
+        static std::common_type_t<T1,T2> impl(T1 const &s1, T2 const &s2) { 
+            using C = std::common_type_t<T1,T2>;
             return static_cast<C>(s1) / static_cast<C>(s2); 
         }
 
@@ -359,9 +360,9 @@ namespace methodverse::parameter {
         static constexpr bool enabled = true;
 
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (is_category_of<U1, scalar_tag> && std::is_base_of_v<eigen_vecmat_tag, category_t<U2>>)
-        static U2 impl(U1 const &s, U2 const &vm) { return (static_cast<double>(s) / vm.array()).eval(); }
+        template <class T1, class T2>
+        requires (is_category_of<T1, scalar_tag> && std::is_base_of_v<eigen_vecmat_tag, category_t<T2>>)
+        static T2 impl(T1 const &s, T2 const &vm) { return (static_cast<double>(s) / vm.array()).eval(); }
 
         template <auto Ux, auto Uy>
         static consteval auto unit_of() { return Ux / Uy; }
@@ -376,9 +377,9 @@ namespace methodverse::parameter {
         static constexpr bool enabled = true;
 
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (std::is_base_of_v<eigen_vecmat_tag, category_t<U1>> && is_category_of<U2, scalar_tag>)
-        static U1 impl(U1 const &vm, U2 const &s) { return ( vm.array() / static_cast<double>(s)).eval(); }
+        template <class T1, class T2>
+        requires (std::is_base_of_v<eigen_vecmat_tag, category_t<T1>> && is_category_of<T2, scalar_tag>)
+        static T1 impl(T1 const &vm, T2 const &s) { return ( vm.array() / static_cast<double>(s)).eval(); }
 
         template <auto Ux, auto Uy>
         static consteval auto unit_of() { return Ux / Uy; }
@@ -393,9 +394,9 @@ namespace methodverse::parameter {
     struct op_policy<eigen_rowvec_tag, eigen_mat_tag, div_op> {
         static constexpr bool enabled = true;   
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (is_category_of<U1, eigen_rowvec_tag> && is_category_of<U2, eigen_mat_tag> && (U1::ColsAtCompileTime == U2::RowsAtCompileTime))
-        static auto impl(U1 const &rv, U2 const &m) { return (rv * m.inverse()).eval(); }
+        template <class T1, class T2>
+        requires (is_category_of<T1, eigen_rowvec_tag> && is_category_of<T2, eigen_mat_tag> && (T1::ColsAtCompileTime == T2::RowsAtCompileTime))
+        static auto impl(T1 const &rv, T2 const &m) { return (rv * m.inverse()).eval(); }
         template <auto Ux, auto Uy>
         static consteval auto unit_of() { return Ux / Uy; }
     };
@@ -405,9 +406,9 @@ namespace methodverse::parameter {
     struct op_policy<eigen_mat_tag, eigen_mat_tag, div_op> {
         static constexpr bool enabled = true;
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (is_category_of<U1, eigen_mat_tag> && is_category_of<U2, eigen_mat_tag> && (U1::ColsAtCompileTime == U2::RowsAtCompileTime))
-        static auto impl(U1 const &m1, U2 const &m2) { return (m1 * m2.inverse()).eval(); }
+        template <class T1, class T2>
+        requires (is_category_of<T1, eigen_mat_tag> && is_category_of<T2, eigen_mat_tag> && (T1::ColsAtCompileTime == T2::RowsAtCompileTime))
+        static auto impl(T1 const &m1, T2 const &m2) { return (m1 * m2.inverse()).eval(); }
         template <auto Ux, auto Uy>
         static consteval auto unit_of() { return Ux / Uy; } // multiplication of units
     };
@@ -417,9 +418,9 @@ namespace methodverse::parameter {
     struct op_policy<eigen_quat_tag, eigen_quat_tag, div_op> {
         static constexpr bool enabled = true;
 
-        template <class U1, class U2>
-        requires (is_category_of<U1, eigen_quat_tag> && is_category_of<U2, eigen_quat_tag>)
-        static Eigen::Quaterniond impl(U1 const &q1, U2 const &q2) { return q1 * q2.inverse(); }
+        template <class T1, class T2>
+        requires (is_category_of<T1, eigen_quat_tag> && is_category_of<T2, eigen_quat_tag>)
+        static Eigen::Quaterniond impl(T1 const &q1, T2 const &q2) { return q1 * q2.inverse(); }
 
         // Units of two parameters must be the same for addition operation
         template <auto Ux, auto Uy>
@@ -432,9 +433,9 @@ namespace methodverse::parameter {
     struct op_policy<eigen_vecmat_tag, eigen_vecmat_tag, coefw_mul_op> {
         static constexpr bool enabled = true;
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (std::is_base_of_v<eigen_vecmat_tag, category_t<U1>> && std::is_base_of_v<eigen_vecmat_tag, category_t<U2>> && std::is_same_v<U1, U2>)
-        static auto impl(U1 const &vm1, U2 const &vm2) { return (vm1.array() * vm2.array()).eval(); }
+        template <class T1, class T2>
+        requires (std::is_base_of_v<eigen_vecmat_tag, category_t<T1>> && std::is_base_of_v<eigen_vecmat_tag, category_t<T2>> && std::is_same_v<T1, T2>)
+        static auto impl(T1 const &vm1, T2 const &vm2) { return (vm1.array() * vm2.array()).eval(); }
         // Units of two parameters must be the same for addition operation
         template <auto Ux, auto Uy>
         static consteval auto unit_of() { return Ux * Uy; } // multiplication of units
@@ -450,9 +451,9 @@ namespace methodverse::parameter {
     struct op_policy<eigen_vecmat_tag, eigen_vecmat_tag, coefw_div_op> {
         static constexpr bool enabled = true;
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (std::is_base_of_v<eigen_vecmat_tag, category_t<U1>> && std::is_base_of_v<eigen_vecmat_tag, category_t<U2>> && std::is_same_v<U1, U2>)
-        static auto impl(U1 const &vm1, U2 const &vm2) { return (vm1.array() / vm2.array()).eval(); }
+        template <class T1, class T2>
+        requires (std::is_base_of_v<eigen_vecmat_tag, category_t<T1>> && std::is_base_of_v<eigen_vecmat_tag, category_t<T2>> && std::is_same_v<T1, T2>)
+        static auto impl(T1 const &vm1, T2 const &vm2) { return (vm1.array() / vm2.array()).eval(); }
         // Units of two parameters must be the same for addition operation
         template <auto Ux, auto Uy>
         static consteval auto unit_of() { return Ux / Uy; } // multiplication of units
@@ -469,9 +470,9 @@ namespace methodverse::parameter {
     {
         static constexpr bool enabled = true;
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (is_category_of<U1, eigen_colvec_tag> && is_category_of<U2, eigen_colvec_tag> && (U1::RowsAtCompileTime == 3) && (U2::RowsAtCompileTime == 3))
-        static auto impl(U1 const &v1, U2 const &v2) { return v1.cross(v2); }
+        template <class T1, class T2>
+        requires (is_category_of<T1, eigen_colvec_tag> && is_category_of<T2, eigen_colvec_tag> && (T1::RowsAtCompileTime == 3) && (T2::RowsAtCompileTime == 3))
+        static auto impl(T1 const &v1, T2 const &v2) { return v1.cross(v2); }
         // Units of two parameters must be the same for addition operation
         template <auto Ux, auto Uy>
         static consteval auto unit_of() { return Ux * Uy; } // multiplication of units
@@ -482,9 +483,9 @@ namespace methodverse::parameter {
     {
         static constexpr bool enabled = true;
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (is_category_of<U1, eigen_rowvec_tag> && is_category_of<U2, eigen_rowvec_tag> && (U1::ColsAtCompileTime == 3) && (U2::ColsAtCompileTime == 3))
-        static auto impl(U1 const &v1, U2 const &v2) { return (v1.transpose().eval().cross(v2.transpose())).transpose().eval(); }
+        template <class T1, class T2>
+        requires (is_category_of<T1, eigen_rowvec_tag> && is_category_of<T2, eigen_rowvec_tag> && (T1::ColsAtCompileTime == 3) && (T2::ColsAtCompileTime == 3))
+        static auto impl(T1 const &v1, T2 const &v2) { return (v1.transpose().eval().cross(v2.transpose())).transpose().eval(); }
         // Units of two parameters must be the same for addition operation
         template <auto Ux, auto Uy>
         static consteval auto unit_of() { return Ux * Uy; } // multiplication of units
@@ -496,9 +497,9 @@ namespace methodverse::parameter {
     struct op_policy<bool_tag, bool_tag, and_op> {
         static constexpr bool enabled = true;
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (std::is_same_v<U1, bool> && std::is_same_v<U2, bool>)
-        static bool impl(U1 const &b1, U2 const &b2) { return b1 && b2; }
+        template <class T1, class T2>
+        requires (std::is_same_v<T1, bool> && std::is_same_v<T2, bool>)
+        static bool impl(T1 const &b1, T2 const &b2) { return b1 && b2; }
     };
 
     // ---- bool || bool -> bool
@@ -506,9 +507,9 @@ namespace methodverse::parameter {
     struct op_policy<bool_tag, bool_tag, or_op> {
         static constexpr bool enabled = true;
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (std::is_same_v<U1, bool> && std::is_same_v<U2, bool>)
-        static bool impl(U1 const &b1, U2 const &b2) { return b1 || b2; }
+        template <class T1, class T2>
+        requires (std::is_same_v<T1, bool> && std::is_same_v<T2, bool>)
+        static bool impl(T1 const &b1, T2 const &b2) { return b1 || b2; }
     };
 
     // ---- bool xor bool -> bool
@@ -516,9 +517,9 @@ namespace methodverse::parameter {
     struct op_policy<bool_tag, bool_tag, xor_op> {
         static constexpr bool enabled = true;
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (std::is_same_v<U1, bool> && std::is_same_v<U2, bool>)
-        static bool impl(U1 const &b1, U2 const &b2) { return b1 != b2; }
+        template <class T1, class T2>
+        requires (std::is_same_v<T1, bool> && std::is_same_v<T2, bool>)
+        static bool impl(T1 const &b1, T2 const &b2) { return b1 != b2; }
     };
 
     // ---- bool xnor bool -> bool
@@ -526,9 +527,9 @@ namespace methodverse::parameter {
     struct op_policy<bool_tag, bool_tag, xnor_op> {
         static constexpr bool enabled = true;
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires (std::is_same_v<U1, bool> && std::is_same_v<U2, bool>)
-        static bool impl(U1 const &b1, U2 const &b2) { return b1 == b2; }
+        template <class T1, class T2>
+        requires (std::is_same_v<T1, bool> && std::is_same_v<T2, bool>)
+        static bool impl(T1 const &b1, T2 const &b2) { return b1 == b2; }
     };
 
     // ---- not bool -> bool
@@ -536,9 +537,9 @@ namespace methodverse::parameter {
     struct op_policy<bool_tag, void, not_op> {
         static constexpr bool enabled = true;
         // Implementation body as templated free/static functions
-        template <class U1>
-        requires (std::is_same_v<U1, bool>)
-        static bool impl(U1 const &b) { return !b; }
+        template <class T1>
+        requires (std::is_same_v<T1, bool>)
+        static bool impl(T1 const &b) { return !b; }
     };
 
     ///////////////////////////// dot operation //////////////////////////
@@ -547,9 +548,9 @@ namespace methodverse::parameter {
     struct op_policy<eigen_vec_tag, eigen_vec_tag, dot_op> {
         static constexpr bool enabled = true;
         // Implementation body as templated free/static functions
-        template <class U1, class U2>
-        requires std::is_base_of_v<eigen_vec_tag, category_t<U1>> && std::is_same_v<U1, U2>
-        static double impl(U1 const &v1, U2 const &v2) { return v1.dot(v2); }
+        template <class T1, class T2>
+        requires std::is_base_of_v<eigen_vec_tag, category_t<T1>> && std::is_same_v<T1, T2>
+        static double impl(T1 const &v1, T2 const &v2) { return v1.dot(v2); }
         template <auto Ux, auto Uy>
         static consteval auto unit_of() { return Ux * Uy; } // multiplication of units
     };
@@ -562,9 +563,9 @@ namespace methodverse::parameter {
     struct op_policy<eigen_vecmat_tag, void, transpose_op> {
         static constexpr bool enabled = true;
         // Implementation body as templated free/static functions
-        template <class U1>
-        requires (std::is_base_of_v<eigen_vecmat_tag, category_t<U1>>)
-        static auto impl(U1 const &m) { return m.transpose().eval(); }
+        template <class T1>
+        requires (std::is_base_of_v<eigen_vecmat_tag, category_t<T1>>)
+        static auto impl(T1 const &m) { return m.transpose().eval(); }
         template <auto Ux>
         static consteval auto unit_of() { return Ux; } // unit remains the same
     };
@@ -579,67 +580,41 @@ namespace methodverse::parameter {
     struct op_policy<eigen_mat_tag, void, inverse_op> {
         static constexpr bool enabled = true;
         // Implementation body as templated free/static functions
-        template <class U1>
-        requires (is_category_of<U1, eigen_mat_tag>)
-        static auto impl(U1 const &m) { return m.inverse().eval(); }
+        template <class T1>
+        requires (is_category_of<T1, eigen_mat_tag>)
+        static auto impl(T1 const &m) { return m.inverse().eval(); }
         template <auto Ux>
         static consteval auto unit_of() { return 1 / Ux; } // inverse of unit
     };
 
     // ---- return type deduction helper
-    template <class Policy, class U1, class U2 = void, class = void>
+    template <class Policy, class T1, class T2 = void, class = void>
     struct op_return_type { using type = void; };
 
     // return type traits for binary operation
-    template <class Policy, class U1, class U2>
-    struct op_return_type<Policy, U1, U2,
-                          std::void_t<decltype(Policy::template impl<U1, U2>(
-                              std::declval<U1>(), std::declval<U2>()))>> {
-        using type = decltype(Policy::template impl<U1, U2>(std::declval<U1>(), std::declval<U2>()));
+    template <class Policy, class T1, class T2>
+    struct op_return_type<Policy, T1, T2,
+                          std::void_t<decltype(Policy::template impl<T1, T2>(
+                              std::declval<T1>(), std::declval<T2>()))>> {
+        using type = decltype(Policy::template impl<T1, T2>(std::declval<T1>(), std::declval<T2>()));
     };
 
     // return type traits for unary operation
-    template <class Policy, class U1>
-    struct op_return_type<Policy, U1, void,
-                          std::void_t<decltype(Policy::template impl<U1>(
-                              std::declval<U1>()))>> {
-        using type = decltype(Policy::template impl<U1>(std::declval<U1>()));
+    template <class Policy, class T1>
+    struct op_return_type<Policy, T1, void,
+                          std::void_t<decltype(Policy::template impl<T1>(
+                              std::declval<T1>()))>> {
+        using type = decltype(Policy::template impl<T1>(std::declval<T1>()));
     };
 
-    template <class Policy, class U1, class U2 = void>
-    using op_return_t = typename op_return_type<Policy, U1, U2>::type;
+    template <class Policy, class T1, class T2 = void>
+    using op_return_t = typename op_return_type<Policy, T1, T2>::type;
 
-    template <class Policy, class U1, class U2 = void, class UR = op_return_t<Policy, U1, U2>>
-    concept op_allowed = Policy::enabled && !std::is_void_v<op_return_t<Policy, U1, U2>>;
+    template <class Policy, class T1, class T2 = void, class UR = op_return_t<Policy, T1, T2>>
+    concept op_allowed = Policy::enabled && !std::is_void_v<op_return_t<Policy, T1, T2>>;
 
     // This is used to prevent the compiler from applying generic operators (+ - * /) to std::vector<T>
     template<class T> struct is_std_vector : std::false_type {}; 
     template<class T, class A> struct is_std_vector<std::vector<T,A>> : std::true_type {}; 
     template<class T> inline constexpr bool is_std_vector_v = is_std_vector<T>::value;
-
-    // // ---- parameter precheck macro
-    // // This macro is to be used inside operator overload functions to do static checks on parameters and return type
-    // // OP_TAG: the operation tag, e.g. add_op
-    // // OP_NAME: the operation name in string, e.g. "operator+" for error messages
-    // #define PARAMETER_BINARY_PRECHECK(OP_TAG, OP_NAME)                                    \
-    //     using category_lhs = typename category<T>::type;                                  \
-    //     using category_rhs = typename category<typename D2::value_type>::type;            \
-    //     using value_type_lhs = T;                                                         \
-    //     using value_type_rhs = typename D2::value_type;                                   \
-    //     using value_type_ret = typename DR::value_type;                                   \
-    //                                                                                       \
-    //     using policy = op_policy<category_lhs, category_rhs, OP_TAG>;                     \
-    //     using return_type_policy = op_return_t<policy, value_type_lhs, value_type_rhs>;   \
-    //                                                                                       \
-    //     constexpr auto unit_lhs = Base::GetUnit();                                        \
-    //     constexpr auto unit_rhs = D2::GetUnit();                                          \
-    //     constexpr auto unit_policy = policy::template unit_of<unit_lhs, unit_rhs>();      \
-    //     constexpr auto unit_ret = DR::GetUnit();                                          \
-    //                                                                                       \
-    //     static_assert(std::is_same_v<return_type_policy, value_type_ret>,                 \
-    //                 "Return type mismatch in " OP_NAME);                                  \
-    //     static_assert(policy::enabled, "Operation not enabled in " OP_NAME);              \
-    //     static_assert(op_allowed<policy, value_type_lhs, value_type_rhs, value_type_ret>, \
-    //                 "Operation not allowed in " OP_NAME);                                 \
-    //     static_assert(unit_policy == unit_ret, "Unit mismatch in " OP_NAME)
 }; // namespace methodverse::parameter

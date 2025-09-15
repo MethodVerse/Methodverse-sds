@@ -125,59 +125,6 @@ namespace methodverse::parameter
         void Set(std::initializer_list<T> values) { value_ = values;}
         static constexpr auto  GetUnit() noexcept { return unit_;}
         std::size_t Size() const noexcept { return value_.size();}
-
-        // // ----------------
-        // // Binary operators, we can probably use MACRO to reduce duplication of code
-        // // ----------------
-        // // ---- Operator +
-        // template<class T2, mp_units::Reference auto Unit2>
-        // requires (op_allowed<op_policy<category_t<T>, category_t<T2>, add_op>, T, T2>)
-        // auto operator+(const ParameterBase<T2, Unit2>& rhs) const {
-        //     using policy = op_policy<category_t<T>, category_t<T2>, add_op>;
-        //     using T3 = op_return_t<policy, T, T2>;
-        //     constexpr auto Unit3 = policy::template unit_of<Unit, Unit2>();
-
-        //     auto r = policy::template impl<T, T2>(Val(), rhs.Val());
-        //     return ParameterBase<T3, Unit3>(r);
-        // }
-
-        // // ---- Operator -
-        // template<class T2, mp_units::Reference auto Unit2>
-        // requires (op_allowed<op_policy<category_t<T>, category_t<T2>, sub_op>, T, T2>)
-        // auto operator-(const ParameterBase<T2, Unit2>& rhs) const {
-        //     using policy = op_policy<category_t<T>, category_t<T2>, sub_op>;
-        //     using T3 = op_return_t<policy, T, T2>;
-        //     constexpr auto Unit3 = policy::template unit_of<Unit, Unit2>();
-
-        //     auto r = policy::template impl<T, T2>(Val(), rhs.Val());
-        //     return ParameterBase<T3, Unit3>(r);
-        // }    
-
-        // // ---- Operator *
-        // template<class T2, mp_units::Reference auto Unit2>
-        // requires (op_allowed<op_policy<category_t<T>, category_t<T2>, mul_op>, T, T2>)
-        // auto operator*(const ParameterBase<T2, Unit2>& rhs) const {
-        //     using policy = op_policy<category_t<T>, category_t<T2>, mul_op>;
-        //     using T3 = op_return_t<policy, T, T2>;
-        //     constexpr auto Unit3 = policy::template unit_of<Unit, Unit2>();
-
-        //     auto r = policy::template impl<T, T2>(Val(), rhs.Val());
-        //     return ParameterBase<T3, Unit3>(r);
-        // }
-
-        // // ---- Operator /
-        // template<class T2, mp_units::Reference auto Unit2>
-        // requires (op_allowed<op_policy<category_t<T>, category_t<T2>, div_op>, T, T2>)
-        // auto operator/(const ParameterBase<T2, Unit2>& rhs) const {
-        //     using policy = op_policy<category_t<T>, category_t<T2>, div_op>;
-        //     using T3 = op_return_t<policy, T, T2>;
-        //     constexpr auto Unit3 = policy::template unit_of<Unit, Unit2>();
-
-        //     auto r = policy::template impl<T, T2>(Val(), rhs.Val());
-        //     return ParameterBase<T3, Unit3>(r);
-        // }
-
-        // Similarly implement -, *, / with the right op tags
     };
    
     template<class T, class Derived, mp_units::Reference auto Unit>
@@ -216,7 +163,4 @@ namespace methodverse::parameter
             requires (std::is_same_v<T2, T> && (Unit2 == Unit))
             : Base(other) {}
     };
-
-
-
 }

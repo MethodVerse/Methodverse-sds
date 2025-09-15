@@ -56,3 +56,14 @@ TEST(OpPolicyAdd, MatMat) {
     Eigen::Matrix3d r = op_policy<eigen_mat_tag,eigen_mat_tag,add_op>::impl(m1, m2);
     EXPECT_EQ(ex, r);
 }
+
+TEST(OpPolicyAllowed, OpPolicyAllowed){
+    using Policy = op_policy<eigen_vecmat_tag, scalar_tag, add_op>;
+    using Policy1 = op_policy<eigen_vecmat_tag, scalar_tag, coefw_mul_op>;
+    static_assert(!Policy1::enabled);
+    static_assert(op_allowed<Policy, Eigen::Vector3d, double>);
+    static_assert(!op_allowed<Policy, int, double>);
+    static_assert(!op_allowed<Policy, float, double>);
+    using return_t = op_return_t<Policy, int, double>;
+    static_assert(std::is_same_v<void, return_t>);
+}

@@ -19,7 +19,7 @@
 
 namespace methodverse::parameter {
 
-    // ---- op tags & category tags
+    // ---- Operation tags
     struct mul_op {};
     struct add_op {};
     struct sub_op {};
@@ -39,20 +39,22 @@ namespace methodverse::parameter {
 
     template<class T> inline constexpr bool always_false = false;
 
-    // ---- Define category tags for different primitive types. purpose is to organize some types into one category
-    struct scalar_tag { using types = boost::mp11::mp_list<int, double>;}; // scalar types include everthing that is convertable to double
+    // ---- Category tags for different primitive types. Purpose is to organize some types into one category,
+    // ---- Therefore we can reduce the number of policies when they are defined on categories than primitives
+    struct scalar_tag { using types = boost::mp11::mp_list<int, double>;}; // scalar category includes everthing that is convertable to double
     struct string_tag { using types = boost::mp11::mp_list<std::string>;};
     struct bool_tag { using types = boost::mp11::mp_list<bool>;};
-    struct eigen_vecmat_tag {};
-    struct eigen_vec_tag : public eigen_vecmat_tag{};
-    struct eigen_quat_tag { using types = boost::mp11::mp_list<Eigen::Quaterniond>;};
-    struct eigen_colvec_tag : public eigen_vec_tag { using types = boost::mp11::mp_list<Eigen::Vector3d>;};    // all column vectors
-    struct eigen_rowvec_tag : public eigen_vec_tag { using types = boost::mp11::mp_list<Eigen::RowVector3d>;}; // all row vectors
-    struct eigen_mat_tag : public eigen_vecmat_tag { using types = boost::mp11::mp_list<Eigen::Matrix3d>;};       // all matrices
+    struct eigen_vecmat_tag {};                                            // category tag for eigen types: matrices and vectors
+    struct eigen_vec_tag : public eigen_vecmat_tag{};                      // category tag for eigen vectors
+    struct eigen_quat_tag { using types = boost::mp11::mp_list<Eigen::Quaterniond>;};                          // category tag for quaternion type
+    struct eigen_colvec_tag : public eigen_vec_tag { using types = boost::mp11::mp_list<Eigen::Vector3d>;};    // category tag for eigen column vectors
+    struct eigen_rowvec_tag : public eigen_vec_tag { using types = boost::mp11::mp_list<Eigen::RowVector3d>;}; // category tag for eigen row vectors
+    struct eigen_mat_tag : public eigen_vecmat_tag { using types = boost::mp11::mp_list<Eigen::Matrix3d>;};    // category tag for eigen matrices. right now we only have 3x3, but can be extended to include other matrices
 
     template<class T, class Tag> 
     concept is_category_of = boost::mp11::mp_contains<typename Tag::types, T>::value;
 
+    // helper to map a primitive to its category
     template<class T>
     struct category {
         using type =
@@ -83,8 +85,8 @@ namespace methodverse::parameter {
     template <class T>
     concept is_allowed_primitive = boost::mp11::mp_contains<primitive_types, T>::value;
 
-    // ---- op policy
-    // primary template, not defined
+    // ---- operation policy
+    // ---- primary template, not defined
     template<class C1, class C2, class Op>
     struct op_policy { static constexpr bool enabled = false; };
 }; // namespace methodverse::parameter
