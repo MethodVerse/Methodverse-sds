@@ -39,6 +39,24 @@ namespace methodverse::operatortest
         left_type left;
         right_type right;
     };
+    template<class L, class RES>
+    struct Sample<L, void, RES>
+    {
+        using left_type = L;
+        using right_type = void;
+        using result_type = RES;
+        left_type left;
+        result_type result;
+        Sample(const L &l, const RES &res) : left(l), result(res) {}
+    };
+    template <class L>
+    struct Sample<L, void, void>
+    {
+        using left_type = L;
+        using right_type = void;
+        using result_type = void;
+        left_type left;
+    };
 
     using DBL = double;
     using INT = int;
@@ -397,4 +415,361 @@ namespace methodverse::operatortest
         template<> inline Sample<QUAD, CV3, void> makeSample<QUAD, CV3, void>() { throw std::runtime_error("not supported!"); }
         template<> inline Sample<QUAD, MAT3, void> makeSample<QUAD, MAT3, void>() { throw std::runtime_error("not supported!"); }
     };
+
+    namespace dot {
+        // ---- Create value pairs (N^2) with expected results, otherwise exception ----
+        // ---- If operation is allowed, a meaningful expected return value pre-calculated is also returned as reference.
+        // ---- Otherwise, void return type and runtime exception is expected.
+        template <class T1, class T2, class T3> Sample<T1, T2, T3> makeSample();
+        template<> inline Sample<INT, INT, void> makeSample<INT, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, DBL, void> makeSample<INT, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, BOO, void> makeSample<INT, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, STR, void> makeSample<INT, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, RV3, void> makeSample<INT, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, CV3, void> makeSample<INT, CV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, MAT3, void> makeSample<INT, MAT3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, QUAD, void> makeSample<INT, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<DBL, DBL, void> makeSample<DBL, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, INT, void> makeSample<DBL, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, BOO, void> makeSample<DBL, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, STR, void> makeSample<DBL, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, RV3, void> makeSample<DBL, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, CV3, void> makeSample<DBL, CV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, MAT3, void> makeSample<DBL, MAT3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, QUAD, void> makeSample<DBL, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<BOO, BOO, void> makeSample<BOO, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, INT, void> makeSample<BOO, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, DBL, void> makeSample<BOO, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, STR, void> makeSample<BOO, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, RV3, void> makeSample<BOO, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, CV3, void> makeSample<BOO, CV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, MAT3, void> makeSample<BOO, MAT3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, QUAD, void> makeSample<BOO, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<STR, STR, void> makeSample<STR, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, INT, void> makeSample<STR, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, DBL, void> makeSample<STR, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, BOO, void> makeSample<STR, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, RV3, void> makeSample<STR, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, CV3, void> makeSample<STR, CV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, MAT3, void> makeSample<STR, MAT3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, QUAD, void> makeSample<STR, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<RV3, RV3, double> makeSample<RV3, RV3, double>() { return Sample(RV3(1,2,3), RV3(0.5,1,1.5), 7.0); }
+        template<> inline Sample<RV3, CV3, void> makeSample<RV3, CV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<RV3, INT, void> makeSample<RV3, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<RV3, DBL, void> makeSample<RV3, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<RV3, BOO, void> makeSample<RV3, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<RV3, STR, void> makeSample<RV3, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<RV3, MAT3, void> makeSample<RV3, MAT3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<RV3, QUAD, void> makeSample<RV3, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<CV3, CV3, double> makeSample<CV3, CV3, double>() {  return Sample(CV3(1,2,3), CV3(0.5,1,1.5), 7.0); }
+        template<> inline Sample<CV3, RV3, void> makeSample<CV3, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<CV3, INT, void> makeSample<CV3, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<CV3, DBL, void> makeSample<CV3, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<CV3, BOO, void> makeSample<CV3, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<CV3, STR, void> makeSample<CV3, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<CV3, MAT3, void> makeSample<CV3, MAT3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<CV3, QUAD, void> makeSample<CV3, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<MAT3, MAT3, void> makeSample<MAT3, MAT3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<MAT3, INT, void> makeSample<MAT3, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<MAT3, DBL, void> makeSample<MAT3, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<MAT3, BOO, void> makeSample<MAT3, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<MAT3, STR, void> makeSample<MAT3, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<MAT3, RV3, void> makeSample<MAT3, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<MAT3, CV3, void> makeSample<MAT3, CV3, void>() {  throw std::runtime_error("not supported!"); }
+        template<> inline Sample<MAT3, QUAD, void> makeSample<MAT3, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<QUAD, QUAD, void> makeSample<QUAD, QUAD, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, INT, void> makeSample<QUAD, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, DBL, void> makeSample<QUAD, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, BOO, void> makeSample<QUAD, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, STR, void> makeSample<QUAD, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, RV3, void> makeSample<QUAD, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, CV3, void> makeSample<QUAD, CV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, MAT3, void> makeSample<QUAD, MAT3, void>() { throw std::runtime_error("not supported!"); }
+    }; 
+    
+    namespace cross {
+        // ---- Create value pairs (N^2) with expected results, otherwise exception ----
+        // ---- If operation is allowed, a meaningful expected return value pre-calculated is also returned as reference.
+        // ---- Otherwise, void return type and runtime exception is expected.
+        template <class T1, class T2, class T3> Sample<T1, T2, T3> makeSample();
+        template<> inline Sample<INT, INT, void> makeSample<INT, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, DBL, void> makeSample<INT, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, BOO, void> makeSample<INT, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, STR, void> makeSample<INT, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, RV3, void> makeSample<INT, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, CV3, void> makeSample<INT, CV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, MAT3, void> makeSample<INT, MAT3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, QUAD, void> makeSample<INT, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<DBL, DBL, void> makeSample<DBL, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, INT, void> makeSample<DBL, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, BOO, void> makeSample<DBL, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, STR, void> makeSample<DBL, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, RV3, void> makeSample<DBL, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, CV3, void> makeSample<DBL, CV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, MAT3, void> makeSample<DBL, MAT3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, QUAD, void> makeSample<DBL, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<BOO, BOO, void> makeSample<BOO, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, INT, void> makeSample<BOO, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, DBL, void> makeSample<BOO, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, STR, void> makeSample<BOO, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, RV3, void> makeSample<BOO, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, CV3, void> makeSample<BOO, CV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, MAT3, void> makeSample<BOO, MAT3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, QUAD, void> makeSample<BOO, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<STR, STR, void> makeSample<STR, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, INT, void> makeSample<STR, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, DBL, void> makeSample<STR, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, BOO, void> makeSample<STR, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, RV3, void> makeSample<STR, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, CV3, void> makeSample<STR, CV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, MAT3, void> makeSample<STR, MAT3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, QUAD, void> makeSample<STR, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<RV3, RV3, RV3> makeSample<RV3, RV3, RV3>() { return Sample(RV3(1,2,3), RV3(0.5,-1,1.5), RV3(6.,  0., -2.)); }
+        template<> inline Sample<RV3, CV3, void> makeSample<RV3, CV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<RV3, INT, void> makeSample<RV3, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<RV3, DBL, void> makeSample<RV3, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<RV3, BOO, void> makeSample<RV3, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<RV3, STR, void> makeSample<RV3, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<RV3, MAT3, void> makeSample<RV3, MAT3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<RV3, QUAD, void> makeSample<RV3, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<CV3, CV3, CV3> makeSample<CV3, CV3, CV3>() {  return Sample(CV3(1,2,3), CV3(0.5,-1,1.5), CV3(6.,  0., -2.)); }
+        template<> inline Sample<CV3, RV3, void> makeSample<CV3, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<CV3, INT, void> makeSample<CV3, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<CV3, DBL, void> makeSample<CV3, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<CV3, BOO, void> makeSample<CV3, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<CV3, STR, void> makeSample<CV3, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<CV3, MAT3, void> makeSample<CV3, MAT3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<CV3, QUAD, void> makeSample<CV3, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<MAT3, MAT3, void> makeSample<MAT3, MAT3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<MAT3, INT, void> makeSample<MAT3, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<MAT3, DBL, void> makeSample<MAT3, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<MAT3, BOO, void> makeSample<MAT3, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<MAT3, STR, void> makeSample<MAT3, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<MAT3, RV3, void> makeSample<MAT3, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<MAT3, CV3, void> makeSample<MAT3, CV3, void>() {  throw std::runtime_error("not supported!"); }
+        template<> inline Sample<MAT3, QUAD, void> makeSample<MAT3, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<QUAD, QUAD, void> makeSample<QUAD, QUAD, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, INT, void> makeSample<QUAD, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, DBL, void> makeSample<QUAD, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, BOO, void> makeSample<QUAD, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, STR, void> makeSample<QUAD, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, RV3, void> makeSample<QUAD, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, CV3, void> makeSample<QUAD, CV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, MAT3, void> makeSample<QUAD, MAT3, void>() { throw std::runtime_error("not supported!"); }
+    };   
+
+    namespace coefw_mul {
+        // ---- Create value pairs (N^2) with expected results, otherwise exception ----
+        // ---- If operation is allowed, a meaningful expected return value pre-calculated is also returned as reference.
+        // ---- Otherwise, void return type and runtime exception is expected.
+        template <class T1, class T2, class T3> Sample<T1, T2, T3> makeSample();
+        template<> inline Sample<INT, INT, void> makeSample<INT, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, DBL, void> makeSample<INT, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, BOO, void> makeSample<INT, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, STR, void> makeSample<INT, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, RV3, void> makeSample<INT, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, CV3, void> makeSample<INT, CV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, MAT3, void> makeSample<INT, MAT3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, QUAD, void> makeSample<INT, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<DBL, DBL, void> makeSample<DBL, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, INT, void> makeSample<DBL, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, BOO, void> makeSample<DBL, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, STR, void> makeSample<DBL, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, RV3, void> makeSample<DBL, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, CV3, void> makeSample<DBL, CV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, MAT3, void> makeSample<DBL, MAT3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, QUAD, void> makeSample<DBL, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<BOO, BOO, void> makeSample<BOO, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, INT, void> makeSample<BOO, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, DBL, void> makeSample<BOO, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, STR, void> makeSample<BOO, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, RV3, void> makeSample<BOO, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, CV3, void> makeSample<BOO, CV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, MAT3, void> makeSample<BOO, MAT3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, QUAD, void> makeSample<BOO, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<STR, STR, void> makeSample<STR, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, INT, void> makeSample<STR, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, DBL, void> makeSample<STR, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, BOO, void> makeSample<STR, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, RV3, void> makeSample<STR, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, CV3, void> makeSample<STR, CV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, MAT3, void> makeSample<STR, MAT3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, QUAD, void> makeSample<STR, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<RV3, RV3, RV3> makeSample<RV3, RV3, RV3>() { return Sample(RV3(1,2,3), RV3(0.5,-1,1.5), RV3(0.5, -2., 4.)); }
+        template<> inline Sample<RV3, CV3, void> makeSample<RV3, CV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<RV3, INT, void> makeSample<RV3, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<RV3, DBL, void> makeSample<RV3, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<RV3, BOO, void> makeSample<RV3, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<RV3, STR, void> makeSample<RV3, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<RV3, MAT3, void> makeSample<RV3, MAT3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<RV3, QUAD, void> makeSample<RV3, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<CV3, CV3, CV3> makeSample<CV3, CV3, CV3>() {  return Sample(CV3(1,2,3), CV3(0.5,-1,1.5), CV3(0.5, -2., 4.)); }
+        template<> inline Sample<CV3, RV3, void> makeSample<CV3, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<CV3, INT, void> makeSample<CV3, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<CV3, DBL, void> makeSample<CV3, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<CV3, BOO, void> makeSample<CV3, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<CV3, STR, void> makeSample<CV3, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<CV3, MAT3, void> makeSample<CV3, MAT3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<CV3, QUAD, void> makeSample<CV3, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<MAT3, MAT3, MAT3> makeSample<MAT3, MAT3, MAT3>() { return Sample((MAT3() << 1,2,3,4,5,6,7,8,9).finished(), (MAT3() << 9,8,7,6,5,4,3,2,1).finished(), (MAT3() << 9,16,21,24,25,24,21,16,9).finished()); }
+        template<> inline Sample<MAT3, INT, void> makeSample<MAT3, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<MAT3, DBL, void> makeSample<MAT3, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<MAT3, BOO, void> makeSample<MAT3, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<MAT3, STR, void> makeSample<MAT3, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<MAT3, RV3, void> makeSample<MAT3, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<MAT3, CV3, void> makeSample<MAT3, CV3, void>() {  throw std::runtime_error("not supported!"); }
+        template<> inline Sample<MAT3, QUAD, void> makeSample<MAT3, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<QUAD, QUAD, void> makeSample<QUAD, QUAD, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, INT, void> makeSample<QUAD, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, DBL, void> makeSample<QUAD, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, BOO, void> makeSample<QUAD, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, STR, void> makeSample<QUAD, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, RV3, void> makeSample<QUAD, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, CV3, void> makeSample<QUAD, CV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, MAT3, void> makeSample<QUAD, MAT3, void>() { throw std::runtime_error("not supported!"); }
+    };   
+
+    namespace coefw_div {
+        // ---- Create value pairs (N^2) with expected results, otherwise exception ----
+        // ---- If operation is allowed, a meaningful expected return value pre-calculated is also returned as reference.
+        // ---- Otherwise, void return type and runtime exception is expected.
+        template <class T1, class T2, class T3> Sample<T1, T2, T3> makeSample();
+        template<> inline Sample<INT, INT, void> makeSample<INT, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, DBL, void> makeSample<INT, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, BOO, void> makeSample<INT, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, STR, void> makeSample<INT, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, RV3, void> makeSample<INT, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, CV3, void> makeSample<INT, CV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, MAT3, void> makeSample<INT, MAT3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<INT, QUAD, void> makeSample<INT, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<DBL, DBL, void> makeSample<DBL, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, INT, void> makeSample<DBL, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, BOO, void> makeSample<DBL, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, STR, void> makeSample<DBL, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, RV3, void> makeSample<DBL, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, CV3, void> makeSample<DBL, CV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, MAT3, void> makeSample<DBL, MAT3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<DBL, QUAD, void> makeSample<DBL, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<BOO, BOO, void> makeSample<BOO, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, INT, void> makeSample<BOO, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, DBL, void> makeSample<BOO, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, STR, void> makeSample<BOO, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, RV3, void> makeSample<BOO, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, CV3, void> makeSample<BOO, CV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, MAT3, void> makeSample<BOO, MAT3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<BOO, QUAD, void> makeSample<BOO, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<STR, STR, void> makeSample<STR, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, INT, void> makeSample<STR, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, DBL, void> makeSample<STR, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, BOO, void> makeSample<STR, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, RV3, void> makeSample<STR, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, CV3, void> makeSample<STR, CV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, MAT3, void> makeSample<STR, MAT3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<STR, QUAD, void> makeSample<STR, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<RV3, RV3, RV3> makeSample<RV3, RV3, RV3>() { return Sample(RV3(1,2,3), RV3(0.5,-1,1.5), RV3(2, -2, 2)); }
+        template<> inline Sample<RV3, CV3, void> makeSample<RV3, CV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<RV3, INT, void> makeSample<RV3, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<RV3, DBL, void> makeSample<RV3, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<RV3, BOO, void> makeSample<RV3, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<RV3, STR, void> makeSample<RV3, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<RV3, MAT3, void> makeSample<RV3, MAT3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<RV3, QUAD, void> makeSample<RV3, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<CV3, CV3, CV3> makeSample<CV3, CV3, CV3>() {  return Sample(CV3(1,2,3), CV3(0.5,-1,1.5), CV3(2, -2, 2)); }
+        template<> inline Sample<CV3, RV3, void> makeSample<CV3, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<CV3, INT, void> makeSample<CV3, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<CV3, DBL, void> makeSample<CV3, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<CV3, BOO, void> makeSample<CV3, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<CV3, STR, void> makeSample<CV3, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<CV3, MAT3, void> makeSample<CV3, MAT3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<CV3, QUAD, void> makeSample<CV3, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<MAT3, MAT3, MAT3> makeSample<MAT3, MAT3, MAT3>() { return Sample((MAT3() << 1,2,3,4,5,6,7,8,9).finished(), (MAT3() << 9,8,7,6,5,4,3,2,1).finished(), (MAT3() << 0.11111111, 0.25, 0.42857143, 0.66666667, 1., 1.5, 2.33333333, 4., 9.).finished()); }
+        template<> inline Sample<MAT3, INT, void> makeSample<MAT3, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<MAT3, DBL, void> makeSample<MAT3, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<MAT3, BOO, void> makeSample<MAT3, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<MAT3, STR, void> makeSample<MAT3, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<MAT3, RV3, void> makeSample<MAT3, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<MAT3, CV3, void> makeSample<MAT3, CV3, void>() {  throw std::runtime_error("not supported!"); }
+        template<> inline Sample<MAT3, QUAD, void> makeSample<MAT3, QUAD, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<QUAD, QUAD, void> makeSample<QUAD, QUAD, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, INT, void> makeSample<QUAD, INT, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, DBL, void> makeSample<QUAD, DBL, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, BOO, void> makeSample<QUAD, BOO, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, STR, void> makeSample<QUAD, STR, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, RV3, void> makeSample<QUAD, RV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, CV3, void> makeSample<QUAD, CV3, void>() { throw std::runtime_error("not supported!"); }
+        template<> inline Sample<QUAD, MAT3, void> makeSample<QUAD, MAT3, void>() { throw std::runtime_error("not supported!"); }
+    };   
+
+    namespace transpose {
+        // ---- Create value pairs (N^2) with expected results, otherwise exception ----
+        // ---- If operation is allowed, a meaningful expected return value pre-calculated is also returned as reference.
+        // ---- Otherwise, void return type and runtime exception is expected.
+        template <class T1, class RES> Sample<T1, void, RES> makeSample();
+        template<> inline Sample<INT, void, void> makeSample<INT, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<DBL, void, void> makeSample<DBL, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<BOO, void, void> makeSample<BOO, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<STR, void, void> makeSample<STR, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<RV3, void, CV3> makeSample<RV3, CV3>() { return Sample<RV3, void, CV3>(RV3(1,2,3), CV3(1, 2, 3)); }
+
+        template<> inline Sample<CV3, void, RV3> makeSample<CV3, RV3>() {  return Sample<CV3, void, RV3>(CV3(1,2,3), RV3(1, 2, 3)); }
+
+        template<> inline Sample<MAT3, void, MAT3> makeSample<MAT3, MAT3>() { return Sample<MAT3, void, MAT3>((MAT3() << 1,2,3,4,5,6,7,8,9).finished(), (MAT3() << 1,4,7,2,5,8,3,6,9).finished()); }
+ 
+        template<> inline Sample<QUAD, void, void> makeSample<QUAD, void>() { throw std::runtime_error("not supported!"); } 
+    };
+
+    namespace inverse {
+        // ---- Create value pairs (N^2) with expected results, otherwise exception ----
+        // ---- If operation is allowed, a meaningful expected return value pre-calculated is also returned as reference.
+        // ---- Otherwise, void return type and runtime exception is expected.
+        template <class T1, class RES> Sample<T1, void, RES> makeSample();
+        template<> inline Sample<INT, void, void> makeSample<INT, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<DBL, void, void> makeSample<DBL, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<BOO, void, void> makeSample<BOO, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<STR, void, void> makeSample<STR, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<RV3, void, void> makeSample<RV3, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<CV3, void, void> makeSample<CV3, void>() { throw std::runtime_error("not supported!"); }
+
+        template<> inline Sample<MAT3, void, MAT3> makeSample<MAT3, MAT3>() { return Sample<MAT3, void, MAT3>((MAT3() << 0,1,0,0,0,1,1,0,0).finished(), (MAT3() << 0,0,1,1,0,0,0,1,0).finished()); }
+ 
+        template<> inline Sample<QUAD, void, void> makeSample<QUAD, void>() { throw std::runtime_error("not supported!"); } 
+    };
+    
 };
