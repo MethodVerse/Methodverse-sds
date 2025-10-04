@@ -22,7 +22,8 @@
 #include <concepts> 
 #include <iostream>
 #include "tags.h"
-
+#include <mp-units/core.h>
+#include <mp-units/systems/si.h>
 namespace methodverse::parameter {
 
     ////////////////////////// addition operator + //////////////////////////
@@ -453,7 +454,7 @@ namespace methodverse::parameter {
         // Implementation body as templated free/static functions
         template <class T1, class T2>
         requires (std::is_base_of_v<eigen_vecmat_tag, category_t<T1>> && std::is_base_of_v<eigen_vecmat_tag, category_t<T2>> && std::is_same_v<T1, T2>)
-        static auto impl(T1 const &vm1, T2 const &vm2) { return (vm1.array() / vm2.array()).eval(); }
+        static auto impl(T1 const &vm1, T2 const &vm2) { return (vm1.array() / vm2.array()).matrix().eval(); }
         // Units of two parameters must be the same for addition operation
         template <auto Ux, auto Uy>
         static consteval auto unit_of() { return Ux / Uy; } // multiplication of units
@@ -562,10 +563,35 @@ namespace methodverse::parameter {
     template<>
     struct op_policy<eigen_vecmat_tag, void, transpose_op> {
         static constexpr bool enabled = true;
+
+        // Compute a legal return options flag for Eigen
+        template <class T>
+        static constexpr int out_options() {
+            constexpr int R = T::ColsAtCompileTime; // after transpose
+            constexpr int C = T::RowsAtCompileTime;
+            // If result is a fixed-size row vector (1xN), it must be RowMajor.
+            if constexpr (R == 1 && C != 1)
+                return Eigen::RowMajor;
+            // If result is a fixed-size col vector (Nx1), it must be ColMajor.
+            else if constexpr (C == 1 && R != 1)
+                return Eigen::ColMajor;
+            // Otherwise pick your preferred default (ColMajor here).
+            else
+                return Eigen::ColMajor;
+        }
+
+        // result type helper: keep scalar, swap dims, force ColMajor
+        template <class T>
+        using ret_t = Eigen::Matrix<typename T::Scalar, T::ColsAtCompileTime, T::RowsAtCompileTime, out_options<T>()>;
+
         // Implementation body as templated free/static functions
         template <class T1>
         requires (std::is_base_of_v<eigen_vecmat_tag, category_t<T1>>)
-        static auto impl(T1 const &m) { return m.transpose().eval(); }
+        static auto impl(T1 const &m) { 
+            ret_t<T1> out(m.cols(), m.rows());         // force ColMajor
+            out = m.transpose().eval(); 
+            return out;
+        }
         template <auto Ux>
         static consteval auto unit_of() { return Ux; } // unit remains the same
     };
@@ -584,7 +610,7 @@ namespace methodverse::parameter {
         requires (is_category_of<T1, eigen_mat_tag>)
         static auto impl(T1 const &m) { return m.inverse().eval(); }
         template <auto Ux>
-        static consteval auto unit_of() { return 1 / Ux; } // inverse of unit
+        static consteval auto unit_of() { return mp_units::one / Ux; } // inverse of unit
     };
 
     // ---- return type deduction helper

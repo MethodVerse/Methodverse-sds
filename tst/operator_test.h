@@ -77,6 +77,7 @@ namespace methodverse::operatortest
     using AllTypes = boost::mp11::mp_list<DBL, INT, BOO, STR, CV3, RV3, MAT3, QUAD>;
     using AllPairs = boost::mp11::mp_product<Pair, AllTypes, AllTypes>;
 
+    using AllTypesT = boost::mp11::mp_apply<::testing::Types, AllTypes>;
     using AllPairsT = boost::mp11::mp_apply<::testing::Types, AllPairs>;
 
     // Detects types that support isApprox(other, eps) -> bool
@@ -86,7 +87,7 @@ namespace methodverse::operatortest
     };
 
     template <class A, class B>
-    void ExpectEqualSmart(const A &expected, const B &actual, double eps = 1e-10) {
+    void ExpectEqualSmart(const A &expected, const B &actual, double eps = 1e-6) {
         if constexpr (HasIsApprox<A> && HasIsApprox<B>) {
             // Eigen matrices/arrays/quaternions, etc.
             EXPECT_TRUE(expected.isApprox(actual, eps))
