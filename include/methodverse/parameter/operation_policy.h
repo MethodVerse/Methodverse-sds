@@ -435,7 +435,7 @@ namespace methodverse::parameter {
         // Implementation body as templated free/static functions
         template <class T1, class T2>
         requires (std::is_base_of_v<eigen_vecmat_tag, category_t<T1>> && std::is_base_of_v<eigen_vecmat_tag, category_t<T2>> && std::is_same_v<T1, T2>)
-        static auto impl(T1 const &vm1, T2 const &vm2) { return (vm1.array() * vm2.array()).eval(); }
+        static auto impl(T1 const &vm1, T2 const &vm2) { return (vm1.array() * vm2.array()).matrix().eval(); }
         // Units of two parameters must be the same for addition operation
         template <auto Ux, auto Uy>
         static consteval auto unit_of() { return Ux * Uy; } // multiplication of units

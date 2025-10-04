@@ -9,7 +9,7 @@ class DivOpTyped : public ::testing::Test{
 
 TYPED_TEST_SUITE(DivOpTyped, AllPairsT);
 
-TYPED_TEST(DivOpTyped, Sub_Operability_And_Correctness_Primitives)
+TYPED_TEST(DivOpTyped, Div_Operability_And_Correctness_Primitives)
 {
     using L = typename TypeParam::left_type;
     using R = typename TypeParam::right_type;

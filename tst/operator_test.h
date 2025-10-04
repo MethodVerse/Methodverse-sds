@@ -613,7 +613,7 @@ namespace methodverse::operatortest
         template<> inline Sample<STR, MAT3, void> makeSample<STR, MAT3, void>() { throw std::runtime_error("not supported!"); }
         template<> inline Sample<STR, QUAD, void> makeSample<STR, QUAD, void>() { throw std::runtime_error("not supported!"); }
 
-        template<> inline Sample<RV3, RV3, RV3> makeSample<RV3, RV3, RV3>() { return Sample(RV3(1,2,3), RV3(0.5,-1,1.5), RV3(0.5, -2., 4.)); }
+        template<> inline Sample<RV3, RV3, RV3> makeSample<RV3, RV3, RV3>() { return Sample<RV3, RV3, RV3>(RV3(1,2,3), RV3(0.5,-1,1.5), RV3(0.5, -2., 4.5)); }
         template<> inline Sample<RV3, CV3, void> makeSample<RV3, CV3, void>() { throw std::runtime_error("not supported!"); }
         template<> inline Sample<RV3, INT, void> makeSample<RV3, INT, void>() { throw std::runtime_error("not supported!"); }
         template<> inline Sample<RV3, DBL, void> makeSample<RV3, DBL, void>() { throw std::runtime_error("not supported!"); }
@@ -622,7 +622,7 @@ namespace methodverse::operatortest
         template<> inline Sample<RV3, MAT3, void> makeSample<RV3, MAT3, void>() { throw std::runtime_error("not supported!"); }
         template<> inline Sample<RV3, QUAD, void> makeSample<RV3, QUAD, void>() { throw std::runtime_error("not supported!"); }
 
-        template<> inline Sample<CV3, CV3, CV3> makeSample<CV3, CV3, CV3>() {  return Sample(CV3(1,2,3), CV3(0.5,-1,1.5), CV3(0.5, -2., 4.)); }
+        template<> inline Sample<CV3, CV3, CV3> makeSample<CV3, CV3, CV3>() {  return Sample(CV3(1,2,3), CV3(0.5,-1,1.5), CV3(0.5, -2., 4.5)); }
         template<> inline Sample<CV3, RV3, void> makeSample<CV3, RV3, void>() { throw std::runtime_error("not supported!"); }
         template<> inline Sample<CV3, INT, void> makeSample<CV3, INT, void>() { throw std::runtime_error("not supported!"); }
         template<> inline Sample<CV3, DBL, void> makeSample<CV3, DBL, void>() { throw std::runtime_error("not supported!"); }
